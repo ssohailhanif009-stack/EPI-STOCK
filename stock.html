@@ -195,8 +195,9 @@
         const analytics = getAnalytics(app);
         const db = getFirestore(app);
 
+        // Map short/dropdown keys to display names used in database items array
         const itemNamesMap = {
-            'v_opv': 'OPV', 'v_hepb': 'HEP-B', 'v_bcg': 'BCG', 'v_bcg_dil': 'BCG Diluent', 'v_penta': 'Pentavalent', 'v_penta10': 'Pentavalent-10 doses',
+            'v_bcg': 'BCG', 'v_opv': 'OPV', 'v_hepb': 'HEP-B', 'v_bcg_dil': 'BCG Diluent', 'v_penta': 'Pentavalent', 'v_penta10': 'Pentavalent-10 doses',
             'v_pcv13': 'PCV-13', 'v_rota': 'Rotavirus', 'v_ipv': 'IPV', 'v_mr': 'Measles-Rubella', 'v_mr_dil': 'MR-Diluent', 'v_mr05': 'Measles-Rubella 05 doses', 'v_mr05_dil': 'MR-Diluent 05 doses',
             'v_tcv': 'TCV', 'v_td': 'TD', 'v_hpv': 'HPV', 'v_panadol': 'Panadol-Drops',
             'l_005s': '0.05 ml Syringes', 'l_05s': '0.5 ml Syringes', 'l_2s': '2 ml Syringes', 'l_5s': '5 ml Syringes', 'l_safety': 'Safety Box',
@@ -214,7 +215,8 @@
         };
 
         async function loadLedger() {
-            const selectedItem = document.getElementById('filterItem').value;
+            const selectedItemKey = document.getElementById('filterItem').value;
+            const targetItemName = itemNamesMap[selectedItemKey] || selectedItemKey;
             const filterCenter = document.getElementById('filterCenter').value;
             const fromDate = document.getElementById('filterFromDate').value;
             const toDate = document.getElementById('filterToDate').value;
@@ -225,7 +227,8 @@
             balanceAlert.style.display = 'none';
 
             try {
-                const querySnapshot = await getDocs(collection(db, "transactions"));
+                // Fetching from 'epi__transactions' collection as seen in your firebase database
+                const querySnapshot = await getDocs(collection(db, "epi__transactions"));
                 
                 let transactions = [];
                 querySnapshot.forEach((doc) => {
@@ -244,10 +247,17 @@
                 let totalReceived = 0;
                 let totalIssued = 0;
 
+                // First pass: Calculate totals for the selected item name across detailedItems array
                 transactions.forEach(tx => {
-                    const qty = (tx.items && tx.items[selectedItem]) ? Number(tx.items[selectedItem]) : 0;
-                    if (tx.type === 'RECEIVE') totalReceived += qty;
-                    else if (tx.type === 'ISSUE') totalIssued += qty;
+                    if (tx.detailedItems && Array.isArray(tx.detailedItems)) {
+                        tx.detailedItems.forEach(item => {
+                            if (item.name === targetItemName) {
+                                const qty = Number(item.qty) || 0;
+                                if (tx.type === 'RECEIVE') totalReceived += qty;
+                                else if (tx.type === 'ISSUE') totalIssued += qty;
+                            }
+                        });
+                    }
                 });
 
                 const currentBalance = totalReceived - totalIssued;
@@ -258,33 +268,39 @@
                 let runningBalance = 0;
                 let rowCount = 0;
 
+                // Second pass: Render transaction rows matching filters
                 transactions.forEach(tx => {
-                    const qty = (tx.items && tx.items[selectedItem]) ? Number(tx.items[selectedItem]) : 0;
-                    
-                    if (tx.type === 'RECEIVE') {
-                        runningBalance += qty;
-                    } else if (tx.type === 'ISSUE') {
-                        runningBalance -= qty;
-                    }
+                    if (!tx.detailedItems || !Array.isArray(tx.detailedItems)) return;
 
-                    if (qty <= 0) return;
+                    tx.detailedItems.forEach(item => {
+                        if (item.name !== targetItemName) return;
 
-                    // Apply filters for display
-                    if (filterCenter && tx.type === 'ISSUE' && tx.epiCenter !== filterCenter) return;
-                    if (fromDate && tx.date < fromDate) return;
-                    if (toDate && tx.date > toDate) return;
+                        const qty = Number(item.qty) || 0;
+                        if (qty <= 0) return;
 
-                    rowCount++;
-                    const tr = document.createElement('tr');
-                    tr.innerHTML = `
-                        <td>${tx.dateTime || (tx.date + ' ' + (tx.time || ''))}</td>
-                        <td><b>${tx.type === 'RECEIVE' ? 'Stock Received' : (tx.vaccinatorName || '-')}</b></td>
-                        <td>${tx.type === 'RECEIVE' ? 'Main Store / HQ' : (tx.epiCenter || '-')}</td>
-                        <td><b style="color: ${tx.type === 'RECEIVE' ? '#2e7d32' : 'inherit'};">${tx.type === 'RECEIVE' ? qty : '-'}</b></td>
-                        <td><b style="color: ${tx.type === 'ISSUE' ? '#c62828' : 'inherit'};">${tx.type === 'ISSUE' ? qty : '-'}</b></td>
-                        <td style="background-color: #f1f5f9; font-weight: bold; color: ${runningBalance < 0 ? 'red' : '#0f4c5c'}">${runningBalance}</td>
-                    `;
-                    tbody.appendChild(tr);
+                        if (tx.type === 'RECEIVE') {
+                            runningBalance += qty;
+                        } else if (tx.type === 'ISSUE') {
+                            runningBalance -= qty;
+                        }
+
+                        // Apply filters for display
+                        if (filterCenter && tx.type === 'ISSUE' && tx.epiCenter !== filterCenter) return;
+                        if (fromDate && tx.date < fromDate) return;
+                        if (toDate && tx.date > toDate) return;
+
+                        rowCount++;
+                        const tr = document.createElement('tr');
+                        tr.innerHTML = `
+                            <td>${tx.dateTime || (tx.date + ' ' + (tx.time || ''))}</td>
+                            <td><b>${tx.type === 'RECEIVE' ? 'Stock Received' : (tx.vaccinatorName || '-')}</b></td>
+                            <td>${tx.type === 'RECEIVE' ? 'Main Store / HQ' : (tx.epiCenter || '-')}</td>
+                            <td><b style="color: ${tx.type === 'RECEIVE' ? '#2e7d32' : 'inherit'};">${tx.type === 'RECEIVE' ? qty : '-'}</b></td>
+                            <td><b style="color: ${tx.type === 'ISSUE' ? '#c62828' : 'inherit'};">${tx.type === 'ISSUE' ? qty : '-'}</b></td>
+                            <td style="background-color: #f1f5f9; font-weight: bold; color: ${runningBalance < 0 ? 'red' : '#0f4c5c'}">${runningBalance}</td>
+                        `;
+                        tbody.appendChild(tr);
+                    });
                 });
 
                 if (rowCount === 0) {
