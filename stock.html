@@ -225,7 +225,7 @@
                    cleanDb.includes(cleanTarget);
         }
 
-        async function loadLedger() {
+       async function loadLedger() {
             const selectedItemKey = document.getElementById('filterItem').value;
             const targetItemName = itemNamesMap[selectedItemKey] || selectedItemKey;
             const filterCenter = document.getElementById('filterCenter').value;
@@ -242,7 +242,10 @@
                 
                 let transactions = [];
                 querySnapshot.forEach((doc) => {
-                    transactions.push(doc.data());
+                    let txData = doc.data();
+                    if (txData.type) txData.type = txData.type.toUpperCase();
+                    console.log("--- Firebase Doc ID:", doc.id, "---", txData); // Yeh console mein data dikhayega
+                    transactions.push(txData);
                 });
 
                 console.log("Total Transactions fetched from Firebase:", transactions.length);
@@ -256,6 +259,99 @@
 
                 tbody.innerHTML = '';
 
+                let totalReceived = 0;
+                let totalIssued = 0;
+
+                // First pass: Calculate totals
+                transactions.forEach(tx => {
+                    if (tx.items && typeof tx.items === 'object') {
+                        Object.keys(tx.items).forEach(key => {
+                            if (isItemMatch(key, selectedItemKey, targetItemName)) {
+                                const qty = Number(tx.items[key]) || 0;
+                                if (qty > 0) {
+                                    if (tx.type === 'RECEIVE') totalReceived += qty;
+                                    else if (tx.type === 'ISSUE' || tx.type === 'ISSUED') totalIssued += qty;
+                                }
+                            }
+                        });
+                    }
+                    if (tx.detailedItems && Array.isArray(tx.detailedItems)) {
+                        tx.detailedItems.forEach(item => {
+                            if (isItemMatch(item.name, selectedItemKey, targetItemName)) {
+                                const qty = Number(item.qty) || 0;
+                                if (qty > 0) {
+                                    if (tx.type === 'RECEIVE') totalReceived += qty;
+                                    else if (tx.type === 'ISSUE' || tx.type === 'ISSUED') totalIssued += qty;
+                                }
+                            }
+                        });
+                    }
+                });
+
+                const currentBalance = totalReceived - totalIssued;
+
+                balanceAlert.style.display = 'block';
+                balanceAlert.innerText = 'Current Available Stock Balance: ' + currentBalance;
+
+                let runningBalance = 0;
+                let rowCount = 0;
+
+                // Second pass: Render rows
+                transactions.forEach(tx => {
+                    let matchedQty = 0;
+
+                    if (tx.items && typeof tx.items === 'object') {
+                        Object.keys(tx.items).forEach(key => {
+                            if (isItemMatch(key, selectedItemKey, targetItemName)) {
+                                matchedQty += Number(tx.items[key]) || 0;
+                            }
+                        });
+                    }
+                    if (tx.detailedItems && Array.isArray(tx.detailedItems)) {
+                        tx.detailedItems.forEach(item => {
+                            if (isItemMatch(item.name, selectedItemKey, targetItemName)) {
+                                matchedQty += Number(item.qty) || 0;
+                            }
+                        });
+                    }
+
+                    if (matchedQty <= 0) return;
+
+                    const isIssue = (tx.type === 'ISSUE' || tx.type === 'ISSUED');
+
+                    // Apply filters
+                    if (filterCenter && isIssue && tx.epiCenter && tx.epiCenter !== filterCenter) return;
+                    if (fromDate && tx.date && tx.date < fromDate) return;
+                    if (toDate && tx.date && tx.date > toDate) return;
+
+                    if (tx.type === 'RECEIVE') {
+                        runningBalance += matchedQty;
+                    } else if (isIssue) {
+                        runningBalance -= matchedQty;
+                    }
+
+                    rowCount++;
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td>${tx.dateTime || (tx.date + ' ' + (tx.time || ''))}</td>
+                        <td><b>${tx.type === 'RECEIVE' ? 'Stock Received' : (tx.vaccinatorName || tx.issuedTo || 'Issued Record')}</b></td>
+                        <td>${tx.type === 'RECEIVE' ? 'Main Store / HQ' : (tx.epiCenter || '-')}</td>
+                        <td><b style="color: ${tx.type === 'RECEIVE' ? '#2e7d32' : 'inherit'};">${tx.type === 'RECEIVE' ? matchedQty : '-'}</b></td>
+                        <td><b style="color: ${isIssue ? '#c62828' : 'inherit'};">${isIssue ? matchedQty : '-'}</b></td>
+                        <td style="background-color: #f1f5f9; font-weight: bold; color: ${runningBalance < 0 ? 'red' : '#0f4c5c'}">${runningBalance}</td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+
+                if (rowCount === 0) {
+                    tbody.innerHTML = `<tr><td colspan="6" style="padding: 20px; color: #777;">No records found matching the selected criteria.</td></tr>`;
+                }
+
+            } catch (error) {
+                console.error("Error fetching data from Firebase: ", error);
+                tbody.innerHTML = `<tr><td colspan="6" style="padding: 20px; color: red;">Error loading data from Firebase.</td></tr>`;
+            }
+        }
                 let totalReceived = 0;
                 let totalIssued = 0;
 
