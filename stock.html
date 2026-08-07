@@ -259,14 +259,27 @@
                 let totalReceived = 0;
                 let totalIssued = 0;
 
-                // First pass: Calculate totals
+                // First pass: Calculate totals (Supporting both old array format & new object items format)
                 transactions.forEach(tx => {
+                    if (tx.items && typeof tx.items === 'object') {
+                        Object.keys(tx.items).forEach(key => {
+                            if (isItemMatch(key, selectedItemKey, targetItemName)) {
+                                const qty = Number(tx.items[key]) || 0;
+                                if (qty > 0) {
+                                    if (tx.type === 'RECEIVE') totalReceived += qty;
+                                    else if (tx.type === 'ISSUE') totalIssued += qty;
+                                }
+                            }
+                        });
+                    }
                     if (tx.detailedItems && Array.isArray(tx.detailedItems)) {
                         tx.detailedItems.forEach(item => {
                             if (isItemMatch(item.name, selectedItemKey, targetItemName)) {
                                 const qty = Number(item.qty) || 0;
-                                if (tx.type === 'RECEIVE') totalReceived += qty;
-                                else if (tx.type === 'ISSUE') totalIssued += qty;
+                                if (qty > 0) {
+                                    if (tx.type === 'RECEIVE') totalReceived += qty;
+                                    else if (tx.type === 'ISSUE') totalIssued += qty;
+                                }
                             }
                         });
                     }
@@ -280,43 +293,53 @@
                 let runningBalance = 0;
                 let rowCount = 0;
 
-                // Second pass: Render rows
+                // Second pass: Render rows (Supporting both formats)
                 transactions.forEach(tx => {
-                    if (!tx.detailedItems || !Array.isArray(tx.detailedItems)) return;
+                    let matchedQty = 0;
 
-                    tx.detailedItems.forEach(item => {
-                        if (!isItemMatch(item.name, selectedItemKey, targetItemName)) return;
+                    if (tx.items && typeof tx.items === 'object') {
+                        Object.keys(tx.items).forEach(key => {
+                            if (isItemMatch(key, selectedItemKey, targetItemName)) {
+                                matchedQty += Number(tx.items[key]) || 0;
+                            }
+                        });
+                    }
+                    if (tx.detailedItems && Array.isArray(tx.detailedItems)) {
+                        tx.detailedItems.forEach(item => {
+                            if (isItemMatch(item.name, selectedItemKey, targetItemName)) {
+                                matchedQty += Number(item.qty) || 0;
+                            }
+                        });
+                    }
 
-                        const qty = Number(item.qty) || 0;
-                        if (qty <= 0) return;
+                    if (matchedQty <= 0) return;
 
-                        if (tx.type === 'RECEIVE') {
-                            runningBalance += qty;
-                        } else if (tx.type === 'ISSUE') {
-                            runningBalance -= qty;
-                        }
+                    // Apply filters
+                    if (filterCenter && tx.type === 'ISSUE' && tx.epiCenter !== filterCenter) return;
+                    if (fromDate && tx.date < fromDate) return;
+                    if (toDate && tx.date > toDate) return;
 
-                        // Apply filters
-                        if (filterCenter && tx.type === 'ISSUE' && tx.epiCenter !== filterCenter) return;
-                        if (fromDate && tx.date < fromDate) return;
-                        if (toDate && tx.date > toDate) return;
+                    if (tx.type === 'RECEIVE') {
+                        runningBalance += matchedQty;
+                    } else if (tx.type === 'ISSUE') {
+                        runningBalance -= matchedQty;
+                    }
 
-                        rowCount++;
-                        const tr = document.createElement('tr');
-                        tr.innerHTML = `
-                            <td>${tx.dateTime || (tx.date + ' ' + (tx.time || ''))}</td>
-                            <td><b>${tx.type === 'RECEIVE' ? 'Stock Received' : (tx.vaccinatorName || '-')}</b></td>
-                            <td>${tx.type === 'RECEIVE' ? 'Main Store / HQ' : (tx.epiCenter || '-')}</td>
-                            <td><b style="color: ${tx.type === 'RECEIVE' ? '#2e7d32' : 'inherit'};">${tx.type === 'RECEIVE' ? qty : '-'}</b></td>
-                            <td><b style="color: ${tx.type === 'ISSUE' ? '#c62828' : 'inherit'};">${tx.type === 'ISSUE' ? qty : '-'}</b></td>
-                            <td style="background-color: #f1f5f9; font-weight: bold; color: ${runningBalance < 0 ? 'red' : '#0f4c5c'}">${runningBalance}</td>
-                        `;
-                        tbody.appendChild(tr);
-                    });
+                    rowCount++;
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td>${tx.dateTime || (tx.date + ' ' + (tx.time || ''))}</td>
+                        <td><b>${tx.type === 'RECEIVE' ? 'Stock Received' : (tx.vaccinatorName || '-')}</b></td>
+                        <td>${tx.type === 'RECEIVE' ? 'Main Store / HQ' : (tx.epiCenter || '-')}</td>
+                        <td><b style="color: ${tx.type === 'RECEIVE' ? '#2e7d32' : 'inherit'};">${tx.type === 'RECEIVE' ? matchedQty : '-'}</b></td>
+                        <td><b style="color: ${tx.type === 'ISSUE' ? '#c62828' : 'inherit'};">${tx.type === 'ISSUE' ? matchedQty : '-'}</b></td>
+                        <td style="background-color: #f1f5f9; font-weight: bold; color: ${runningBalance < 0 ? 'red' : '#0f4c5c'}">${runningBalance}</td>
+                    `;
+                    tbody.appendChild(tr);
                 });
 
                 if (rowCount === 0) {
-                    tbody.innerHTML = `<tr><td colspan="6" style="padding: 20px; color: #777;">No records found matching the selected criteria. (Check browser F12 Console for database logs)</td></tr>`;
+                    tbody.innerHTML = `<tr><td colspan="6" style="padding: 20px; color: #777;">No records found matching the selected criteria.</td></tr>`;
                 }
 
             } catch (error) {
@@ -513,7 +536,7 @@
     <div id="balanceAlert" class="balance-display"></div>
 
     <!-- Master Line List Table -->
-    <div style="overflow-x. auto;">
+    <div style="overflow-x: auto;">
         <table id="ledgerTable">
             <thead>
                 <tr>
