@@ -175,7 +175,7 @@
         }
     </style>
 
-    <!-- Firebase SDK Imports -->
+    <!-- Firebase SDK Imports & Logic -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-app.js";
         import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-analytics.js";
@@ -244,11 +244,8 @@
                 querySnapshot.forEach((doc) => {
                     let txData = doc.data();
                     if (txData.type) txData.type = txData.type.toUpperCase();
-                    console.log("--- Firebase Doc ID:", doc.id, "---", txData);
                     transactions.push(txData);
                 });
-
-                console.log("Total Transactions fetched from Firebase:", transactions.length);
 
                 // Sort transactions by date
                 transactions.sort((a, b) => {
@@ -395,6 +392,7 @@
             doc.save(`EPI_Stock_Book_${itemName}.pdf`);
         }
 
+        // Attach functions to window object so HTML can access them
         window.filterTable = filterTable;
         window.resetFilters = resetFilters;
         window.downloadPDF = downloadPDF;
