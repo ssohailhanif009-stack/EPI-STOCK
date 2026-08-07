@@ -198,6 +198,8 @@
             transition: background 0.3s;
             display: inline-block;
             box-shadow: 0 3px 8px rgba(15, 76, 92, 0.2);
+            cursor: pointer;
+            border: none;
         }
 
         .btn-portal:hover {
@@ -323,12 +325,15 @@
 
             <div class="footer-flex">
                 <span>Civil Hospital Naushahro Feroze &copy; 2026 - EPI Inventory Headquarters</span>
-                <span>Developed by: <b>Aaqib Hanif Rajput</b></span>
+                <span>Developed by: <b>Aqib Hanif Rajput</b></span>
             </div>
         </div>
     </div>
 
-<script>
+<script type="module">
+    import { db } from './firebase.js';
+    import { ref, get } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-database.js";
+
     const itemNamesMap = {
         'v_opv': 'OPV', 'v_hepb': 'HEP-B', 'v_bcg': 'BCG', 'v_bcg_dil': 'BCG Diluent', 'v_penta': 'Pentavalent', 'v_penta10': 'Pentavalent-10 doses',
         'v_pcv13': 'PCV-13', 'v_rota': 'Rotavirus', 'v_ipv': 'IPV', 'v_mr': 'Measles-Rubella', 'v_mr_dil': 'MR-Diluent', 'v_mr05': 'Measles-Rubella 05 doses', 'v_mr05_dil': 'MR-Diluent 05 doses',
@@ -347,7 +352,7 @@
         'r_monthlyrep': 'EPI Monthly Report', 'r_aefibook': 'AEFI Book', 'r_zerobook': 'Zero Weekly Surveillance Book', 'r_vpdbook': 'VPD Weekly Reporting Book'
     };
 
-    function toggleOverview() {
+    window.toggleOverview = async function() {
         const panel = document.getElementById('overviewPanel');
         const grid = document.getElementById('overviewGrid');
         
@@ -357,36 +362,48 @@
         }
 
         panel.style.display = 'block';
-        grid.innerHTML = '';
+        grid.innerHTML = '<div style="grid-column: 1 / -1; text-align: center; padding: 20px; color: #64748b;">Loading closing balances from Firebase...</div>';
 
-        const transactions = JSON.parse(localStorage.getItem('epi_transactions')) || [];
+        try {
+            const dbRef = ref(db, 'epi_transactions');
+            const snapshot = await get(dbRef);
+            let transactions = [];
+            if (snapshot.exists()) {
+                transactions = Object.values(snapshot.val());
+            }
 
-        for (const [key, name] of Object.entries(itemNamesMap)) {
-            let received = 0;
-            let issued = 0;
+            grid.innerHTML = '';
 
-            transactions.forEach(tx => {
-                const qty = (tx.items && tx.items[key]) ? Number(tx.items[key]) : 0;
-                if (tx.type === 'RECEIVE') {
-                    received += qty;
-                } else if (tx.type === 'ISSUE') {
-                    issued += qty;
-                }
-            });
+            for (const [key, name] of Object.entries(itemNamesMap)) {
+                let received = 0;
+                let issued = 0;
 
-            const balance = received - issued;
+                transactions.forEach(tx => {
+                    const qty = (tx.items && tx.items[key]) ? Number(tx.items[key]) : 0;
+                    if (tx.type === 'RECEIVE') {
+                        received += qty;
+                    } else if (tx.type === 'ISSUE') {
+                        issued += qty;
+                    }
+                });
 
-            const card = document.createElement('div');
-            card.className = 'stock-card-item';
-            card.innerHTML = `
-                <span>${name}</span>
-                <h5 style="color: ${balance < 0 ? '#dc2626' : '#0f4c5c'}">${balance}</h5>
-            `;
-            grid.appendChild(card);
+                const balance = received - issued;
+
+                const card = document.createElement('div');
+                card.className = 'stock-card-item';
+                card.innerHTML = `
+                    <span>${name}</span>
+                    <h5 style="color: ${balance < 0 ? '#dc2626' : '#0f4c5c'}">${balance}</h5>
+                `;
+                grid.appendChild(card);
+            }
+        } catch (error) {
+            console.error("Error fetching closing balances:", error);
+            grid.innerHTML = '<div style="grid-column: 1 / -1; text-align: center; padding: 20px; color: #dc2626;">Failed to load data from Firebase. Please check your connection.</div>';
         }
     }
 
-    function logoutSystem() {
+    window.logoutSystem = function() {
         if(confirm('Are you sure you want to logout?')) {
             localStorage.clear();
             sessionStorage.clear();
