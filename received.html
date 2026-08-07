@@ -4,6 +4,31 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Stock Received - EPI Management System - Civil Hospital Naushahro Feroze</title>
+    
+    <!-- Firebase SDKs -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-app.js";
+        import { getFirestore, collection, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDkGYva8XEryBevjHBJm3VSDRwjnOrb3kc",
+            authDomain: "epi-stock-c7945.firebaseapp.com",
+            projectId: "epi-stock-c7945",
+            storageBucket: "epi-stock-c7945.firebasestorage.app",
+            messagingSenderId: "966405212084",
+            appId: "1:966405212084:web:b523f41e8c011e409054e1",
+            measurementId: "G-L4QNDF2Z31"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        window.db = db;
+        window.collection = collection;
+        window.addDoc = addDoc;
+        window.getDocs = getDocs;
+    </script>
+
     <style>
         * {
             box-sizing: border-box;
@@ -978,7 +1003,7 @@
             field.type = "text";
         }
 
-        function handleFormSubmit(event) {
+        async function handleFormSubmit(event) {
             event.preventDefault();
 
             let now = new Date();
@@ -1040,20 +1065,25 @@
                 vaccinatorName: receiver,
                 issuedBy: issuedBy,
                 items: itemsData,
-                detailedItems: detailedItems
+                detailedItems: detailedItems,
+                timestamp: new Date()
             };
 
-            let allTransactions = JSON.parse(localStorage.getItem('epi_transactions')) || [];
-            allTransactions.push(record);
-            localStorage.setItem('epi_transactions', JSON.stringify(allTransactions));
+            try {
+                // Save data to Firebase Firestore
+                await window.addDoc(window.collection(window.db, "epi_transactions"), record);
+                
+                alert(`Stock Received saved to Firebase successfully!\nDate: ${formDate}\nTime (12h): ${time12Format}\nReceiver: ${receiver}\nIssued By: ${issuedBy}`);
 
-            alert(`Stock Received saved successfully and synchronized across all system files!\nDate: ${formDate}\nTime (12h): ${time12Format}\nReceiver: ${receiver}\nIssued By: ${issuedBy}`);
-
-            document.getElementById('receivedForm').reset();
-            document.getElementById('formTime').value = "";
+                document.getElementById('receivedForm').reset();
+                document.getElementById('formTime').value = "";
+            } catch (e) {
+                console.error("Error adding document: ", e);
+                alert("Error saving to Firebase: " + e.message);
+            }
         }
 
-        function downloadWordReport() {
+        async function downloadWordReport() {
             let fromDate = document.getElementById('reportFromDate').value;
             let toDate = document.getElementById('reportToDate').value;
             let selectedReportItem = document.getElementById('reportSearchDropdown').value;
@@ -1064,7 +1094,18 @@
                 return;
             }
 
-            let allTransactions = JSON.parse(localStorage.getItem('epi_transactions')) || [];
+            let allTransactions = [];
+            try {
+                const querySnapshot = await window.getDocs(window.collection(window.db, "epi_transactions"));
+                querySnapshot.forEach((doc) => {
+                    allTransactions.push(doc.data());
+                });
+            } catch (e) {
+                console.error("Error fetching data: ", e);
+                alert("Error fetching data from Firebase.");
+                return;
+            }
+
             let filteredRecords = allTransactions.filter(record => {
                 return record.type === 'RECEIVE' && record.date >= fromDate && record.date <= toDate;
             });
@@ -1074,7 +1115,6 @@
                 return;
             }
 
-            // Extract unique or latest Receiver and Issuer names from filtered records to display at the top of the report
             let lastReceiver = filteredRecords[filteredRecords.length - 1].vaccinatorName || "-";
             let lastIssuedBy = filteredRecords[filteredRecords.length - 1].issuedBy || "-";
 
