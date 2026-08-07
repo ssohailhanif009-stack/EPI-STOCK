@@ -175,11 +175,11 @@
         }
     </style>
 
-    <!-- Firebase SDK Imports (Modular v11 / compatible with 12.x) -->
+    <!-- Firebase SDK Imports -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-app.js";
         import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-analytics.js";
-        import { getFirestore, collection, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js";
+        import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyChMj0SRQlA0MrsDGJHr8BNbxSKXuFAYPo",
@@ -191,12 +191,10 @@
             measurementId: "G-ECDS1BK0Y6"
         };
 
-        // Initialize Firebase
         const app = initializeApp(firebaseConfig);
         const analytics = getAnalytics(app);
         const db = getFirestore(app);
 
-        // Global items map
         const itemNamesMap = {
             'v_opv': 'OPV', 'v_hepb': 'HEP-B', 'v_bcg': 'BCG', 'v_bcg_dil': 'BCG Diluent', 'v_penta': 'Pentavalent', 'v_penta10': 'Pentavalent-10 doses',
             'v_pcv13': 'PCV-13', 'v_rota': 'Rotavirus', 'v_ipv': 'IPV', 'v_mr': 'Measles-Rubella', 'v_mr_dil': 'MR-Diluent', 'v_mr05': 'Measles-Rubella 05 doses', 'v_mr05_dil': 'MR-Diluent 05 doses',
@@ -227,13 +225,18 @@
             balanceAlert.style.display = 'none';
 
             try {
-                // Firestore collection reference (assuming collection name is 'transactions')
-                const q = query(collection(db, "transactions"), orderBy("id", "asc"));
-                const querySnapshot = await getDocs(q);
+                const querySnapshot = await getDocs(collection(db, "transactions"));
                 
                 let transactions = [];
                 querySnapshot.forEach((doc) => {
                     transactions.push(doc.data());
+                });
+
+                // Sort transactions by date if available
+                transactions.sort((a, b) => {
+                    let dateA = a.date || '';
+                    let dateB = b.date || '';
+                    return dateA.localeCompare(dateB);
                 });
 
                 tbody.innerHTML = '';
@@ -253,22 +256,25 @@
                 balanceAlert.innerText = 'Current Available Stock Balance: ' + currentBalance;
 
                 let runningBalance = 0;
+                let rowCount = 0;
 
                 transactions.forEach(tx => {
                     const qty = (tx.items && tx.items[selectedItem]) ? Number(tx.items[selectedItem]) : 0;
-                    if (qty <= 0) return;
-
+                    
                     if (tx.type === 'RECEIVE') {
                         runningBalance += qty;
                     } else if (tx.type === 'ISSUE') {
                         runningBalance -= qty;
                     }
 
+                    if (qty <= 0) return;
+
                     // Apply filters for display
                     if (filterCenter && tx.type === 'ISSUE' && tx.epiCenter !== filterCenter) return;
                     if (fromDate && tx.date < fromDate) return;
                     if (toDate && tx.date > toDate) return;
 
+                    rowCount++;
                     const tr = document.createElement('tr');
                     tr.innerHTML = `
                         <td>${tx.dateTime || (tx.date + ' ' + (tx.time || ''))}</td>
@@ -281,7 +287,7 @@
                     tbody.appendChild(tr);
                 });
 
-                if (tbody.children.length === 0) {
+                if (rowCount === 0) {
                     tbody.innerHTML = `<tr><td colspan="6" style="padding: 20px; color: #777;">No records found matching the selected criteria.</td></tr>`;
                 }
 
@@ -333,12 +339,10 @@
             doc.save(`EPI_Stock_Book_${itemName}.pdf`);
         }
 
-        // Expose functions globally to be accessible from HTML event attributes
         window.filterTable = filterTable;
         window.resetFilters = resetFilters;
         window.downloadPDF = downloadPDF;
 
-        // Load ledger when window loads
         window.onload = () => {
             loadLedger();
         };
