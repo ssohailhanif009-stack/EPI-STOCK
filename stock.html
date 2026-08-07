@@ -331,7 +331,10 @@
     </div>
 </div>
 
-<script>
+<script type="module">
+    import { db } from './firebase.js';
+    import { ref, get } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-database.js";
+
     const itemNamesMap = {
         'v_opv': 'OPV', 'v_hepb': 'HEP-B', 'v_bcg': 'BCG', 'v_bcg_dil': 'BCG Diluent', 'v_penta': 'Pentavalent', 'v_penta10': 'Pentavalent-10 doses',
         'v_pcv13': 'PCV-13', 'v_rota': 'Rotavirus', 'v_ipv': 'IPV', 'v_mr': 'Measles-Rubella', 'v_mr_dil': 'MR-Diluent', 'v_mr05': 'Measles-Rubella 05 doses', 'v_mr05_dil': 'MR-Diluent 05 doses',
@@ -350,8 +353,15 @@
         'r_monthlyrep': 'EPI Monthly Report', 'r_aefibook': 'AEFI Book', 'r_zerobook': 'Zero Weekly Surveillance Book', 'r_vpdbook': 'VPD Weekly Reporting Book'
     };
 
-    function loadLedger() {
-        const transactions = JSON.parse(localStorage.getItem('epi_transactions')) || [];
+    async function loadLedger() {
+        const dbRef = ref(db, 'epi_transactions');
+        const snapshot = await get(dbRef);
+        let transactions = [];
+        if (snapshot.exists()) {
+            const data = snapshot.val();
+            transactions = Object.values(data);
+        }
+
         const selectedItem = document.getElementById('filterItem').value;
         const filterCenter = document.getElementById('filterCenter').value;
         const fromDate = document.getElementById('filterFromDate').value;
@@ -377,7 +387,7 @@
         balanceAlert.innerText = 'Current Available Stock Balance: ' + currentBalance;
 
         let runningBalance = 0;
-        transactions.sort((a, b) => a.id - b.id);
+        transactions.sort((a, b) => (a.id || 0) - (b.id || 0));
 
         transactions.forEach(tx => {
             const qty = (tx.items && tx.items[selectedItem]) ? Number(tx.items[selectedItem]) : 0;
@@ -411,11 +421,11 @@
         }
     }
 
-    function filterTable() {
+    window.filterTable = function() {
         loadLedger();
     }
 
-    function resetFilters() {
+    window.resetFilters = function() {
         document.getElementById('filterFromDate').value = '';
         document.getElementById('filterToDate').value = '';
         document.getElementById('filterCenter').value = '';
@@ -423,7 +433,7 @@
         loadLedger();
     }
 
-    function downloadPDF() {
+    window.downloadPDF = function() {
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF();
 
