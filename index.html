@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vaccine Inventory System</title>
+    <style>
+        :root {
+            --primary-color: #0f4c5c;
+            --secondary-color: #e3f2fd;
+            --dark-color: #333333;
+            --light-bg: #f4f7f6;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(rgba(255, 255, 255, 0.92), rgba(255, 255, 255, 0.92)), 
+                        url('https://images.unsplash.com/photo-1584515979956-d9f6e5d09982?auto=format&fit=crop&w=1920&q=80') no-repeat center center fixed;
+            background-size: cover;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            color: var(--dark-color);
+        }
+        .login-container {
+            background: #ffffff;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+            width: 450px;
+            text-align: center;
+            border-top: 6px solid var(--primary-color);
+        }
+        .login-container img {
+            width: 80px;
+            height: 80px;
+            margin-bottom: 20px;
+            object-fit: contain;
+        }
+        .login-container h1 {
+            font-size: 16px;
+            color: var(--primary-color);
+            margin: 0 0 5px 0;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: bold;
+        }
+        .login-container h2 {
+            font-size: 13px;
+            color: #666;
+            margin-bottom: 25px;
+            font-weight: 600;
+        }
+        .form-group {
+            margin-bottom: 25px;
+            text-align: left;
+        }
+        .form-group label {
+            font-weight: 600;
+            font-size: 12px;
+            margin-bottom: 5px;
+            color: #475569;
+            display: block;
+        }
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            box-sizing: border-box;
+            border: 1px solid #cbd5e1;
+            border-radius: 5px;
+            font-size: 14px;
+            color: var(--dark-color);
+            background: #fff;
+            transition: border-color 0.3s;
+        }
+        .form-group input:focus {
+            border-color: var(--primary-color);
+            outline: none;
+            box-shadow: 0 0 5px rgba(15, 76, 92, 0.2);
+        }
+        .btn-start {
+            width: 100%;
+            padding: 12px;
+            background-color: var(--primary-color);
+            border: none;
+            color: white;
+            font-size: 15px;
+            font-weight: bold;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .btn-start:hover {
+            background-color: #0b3642;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="login-container">
+        <!-- Logo Image -->
+        <img src="logopic.png" alt="Logo" onerror="this.style.display='none'">
+        
+        <!-- Headings -->
+        <h1>EXPANDED PROGRAM ON IMMUNIZATION VACCINE INVENTORY SYSTEM</h1>
+        <h2>Taluka Headquarter of Vaccination Civil Hospital Naushahro Feroze</h2>
+
+        <!-- Start Form Linked to main.html -->
+        <form action="main.html" method="GET" onsubmit="return validateCnic(event)">
+            <div class="form-group">
+                <label for="cnic">Enter CNIC Number</label>
+                <input type="text" id="cnic" name="cnic" required autocomplete="off">
+            </div>
+
+            <button type="submit" class="btn-start">START SYSTEM</button>
+        </form>
+    </div>
+
+    <script>
+        function validateCnic(event) {
+            const enteredValue = document.getElementById('cnic').value.trim();
+            const targetCnic = "4530444672461";
+
+            if (enteredValue !== targetCnic) {
+                alert("Please enter the correct authorized CNIC number to start the system.");
+                event.preventDefault(); // Stop form submission
+                return false;
+            }
+            return true;
+        }
+    </script>
+
+</body>
+</html>

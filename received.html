@@ -1,0 +1,1248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stock Received - EPI Management System - Civil Hospital Naushahro Feroze</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(rgba(15, 32, 39, 0.8), rgba(44, 62, 80, 0.8)), 
+                        url('https://images.unsplash.com/photo-1584515979956-d9f6e5d09982?auto=format&fit=crop&w=1920&q=80') no-repeat center center fixed;
+            background-size: cover;
+            color: #333;
+            padding: 10px 10px 300px 10px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+            border-top: 5px solid #0f4c5c;
+        }
+
+        header {
+            background: #0f4c5c;
+            color: white;
+            padding: 15px 25px;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
+            flex-wrap: wrap;
+            border-bottom: 3px solid #1d3557;
+        }
+
+        .logo-img {
+            width: 65px;
+            height: 65px;
+            object-fit: cover;
+            border-radius: 4px;
+            border: 2px solid #ffffff;
+            background: white;
+        }
+
+        .header-text {
+            flex: 1;
+            text-align: center;
+        }
+
+        .header-text h1 {
+            font-size: 19px;
+            margin-bottom: 2px;
+            letter-spacing: 0.8px;
+            text-transform: uppercase;
+            font-weight: 700;
+        }
+
+        .header-text h2 {
+            font-size: 13px;
+            font-weight: 400;
+            color: #e0fbfc;
+        }
+
+        .header-sub {
+            font-size: 11px;
+            background: #1d3557;
+            padding: 6px 10px;
+            border-radius: 4px;
+            color: #ffffff;
+            font-weight: 600;
+            white-space: nowrap;
+            border: 1px solid #457b9d;
+        }
+
+        .form-container {
+            padding: 20px 30px;
+            background: #fdfdfd;
+        }
+
+        .control-panel {
+            background: #f1f5f9;
+            border: 1px solid #cbd5e1;
+            padding: 12px 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            align-items: flex-end;
+        }
+
+        .control-panel .col {
+            flex: 1;
+            min-width: 220px;
+        }
+
+        .control-panel-title {
+            width: 100%;
+            font-size: 14px;
+            font-weight: 700;
+            color: #0f4c5c;
+            margin-bottom: 4px;
+            border-bottom: 2px solid #cbd5e1;
+            padding-bottom: 3px;
+        }
+
+        .section-title {
+            font-size: 15px;
+            color: #0f4c5c;
+            border-bottom: 2px solid #0f4c5c;
+            padding-bottom: 5px;
+            margin: 20px 0 12px 0;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        .row {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 12px;
+            flex-wrap: wrap;
+        }
+
+        .col {
+            flex: 1;
+            min-width: 250px;
+        }
+
+        label {
+            display: block;
+            font-weight: 600;
+            font-size: 12px;
+            margin-bottom: 4px;
+            color: #1e293b;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #cbd5e1;
+            border-radius: 5px;
+            font-size: 13px;
+            outline: none;
+            transition: all 0.3s;
+            background: #ffffff;
+        }
+
+        input:focus, select:focus {
+            border-color: #0f4c5c;
+            box-shadow: 0 0 5px rgba(15, 76, 92, 0.3);
+        }
+
+        .btn-reset-field {
+            background: #e2e8f0;
+            color: #334155;
+            border: 1px solid #cbd5e1;
+            padding: 8px 12px;
+            border-radius: 5px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: background 0.2s;
+        }
+
+        .btn-reset-field:hover {
+            background: #cbd5e1;
+            color: #0f4c5c;
+        }
+
+        .grid-items {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 12px;
+        }
+
+        .item-card {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            padding: 10px 12px;
+            border-radius: 6px;
+            transition: all 0.3s ease;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+        }
+
+        .item-card:hover {
+            border-color: #94a3b8;
+        }
+
+        .item-card .item-title {
+            font-size: 12px;
+            font-weight: 700;
+            color: #0f4c5c;
+            margin-bottom: 6px;
+            border-bottom: 1px dashed #cbd5e1;
+            padding-bottom: 3px;
+        }
+
+        .item-subfields {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .item-subfields label {
+            font-size: 11px;
+            margin-bottom: 1px;
+            color: #475569;
+            font-weight: 500;
+        }
+
+        .item-subfields input, .item-subfields select {
+            padding: 5px 8px;
+            font-size: 12px;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 25px;
+            flex-wrap: wrap;
+        }
+
+        .btn-submit {
+            background: #0f4c5c;
+            color: white;
+            border: none;
+            padding: 10px 25px;
+            font-size: 15px;
+            font-weight: bold;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.3s;
+            box-shadow: 0 4px 10px rgba(15, 76, 92, 0.3);
+        }
+
+        .btn-submit:hover {
+            background: #0b3c48;
+        }
+
+        .btn-download {
+            background: #2563eb;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 15px;
+            font-weight: bold;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .btn-download:hover {
+            background: #1d4ed8;
+        }
+
+        .nav-links {
+            text-align: left;
+            margin-bottom: 15px;
+        }
+        .nav-links a {
+            color: #0f4c5c;
+            text-decoration: none;
+            font-weight: bold;
+            margin-right: 15px;
+            font-size: 13px;
+        }
+        .nav-links a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container" id="reportContent">
+        <header>
+            <img src="logopic.png" alt="EPI Logo" class="logo-img" onerror="this.style.display='none'">
+            <div class="header-text">
+                <h1>EXPANDED PROGRAM ON IMMUNIZATION VACCINE RECEIVED FORM</h1>
+                <h2>Vaccine and Logistics Requisition & Distribution Form</h2>
+            </div>
+            <div class="header-sub">
+                District & Taluka<br>Naushahro Feroze
+            </div>
+        </header>
+
+        <div class="form-container">
+            <div class="nav-links">
+                <a href="issued.html">← Issue Stock Form</a> | 
+                <a href="stock.html">View Master Stock Ledger →</a>
+            </div>
+            
+            <div class="control-panel">
+                <div class="control-panel-title">📊 Total Receive Stock Report Filter</div>
+                <div class="col">
+                    <label>Date Range (From - To)</label>
+                    <div style="display: flex; gap: 5px; margin-bottom: 2px;">
+                        <div style="flex:1;">
+                            <input type="text" id="reportFromDate" placeholder="From (DD/MM/YYYY)" onfocus="this.type='date'" onblur="if(!this.value)this.type='text'">
+                        </div>
+                        <div style="flex:1;">
+                            <input type="text" id="reportToDate" placeholder="To (DD/MM/YYYY)" onfocus="this.type='date'" onblur="if(!this.value)this.type='text'">
+                        </div>
+                        <button type="button" class="btn-reset-field" onclick="resetField('reportFromDate'); resetField('reportToDate');">Reset</button>
+                    </div>
+                </div>
+
+                <div class="col">
+                    <label for="reportSearchDropdown">Select Item for Total Report</label>
+                    <select id="reportSearchDropdown">
+                        <option value="">-- All Items (Total Combined Report) --</option>
+                        <optgroup label="Vaccines">
+                            <option value="OPV">OPV</option>
+                            <option value="HEP-B">HEP-B</option>
+                            <option value="BCG">BCG</option>
+                            <option value="BCG Diluent">BCG Diluent</option>
+                            <option value="Pentavalent">Pentavalent</option>
+                            <option value="Pentavalent-10 doses">Pentavalent-10 doses</option>
+                            <option value="PCV-13">PCV-13</option>
+                            <option value="Rotavirus">Rotavirus</option>
+                            <option value="IPV">IPV</option>
+                            <option value="Measles-Rubella">Measles-Rubella</option>
+                            <option value="MR-Diluent">MR-Diluent</option>
+                            <option value="Measles-Rubella 05 doses">Measles-Rubella 05 doses</option>
+                            <option value="MR-Diluent 05 doses">MR-Diluent 05 doses</option>
+                            <option value="TCV">TCV</option>
+                            <option value="TD">TD</option>
+                            <option value="HPV">HPV</option>
+                            <option value="Panadol-Drops">Panadol-Drops</option>
+                        </optgroup>
+                        <optgroup label="Logistics">
+                            <option value="0.05 ml Syringes">0.05 ml Syringes</option>
+                            <option value="0.5 ml Syringes">0.5 ml Syringes</option>
+                            <option value="2 ml Syringes">2 ml Syringes</option>
+                            <option value="5 ml Syringes">5 ml Syringes</option>
+                            <option value="Safety Box">Safety Box</option>
+                            <option value="Droppers">Droppers</option>
+                            <option value="Vaccine Carrier">Vaccine Carrier</option>
+                            <option value="Vaccination Card">Vaccination Card</option>
+                            <option value="QR-Code">QR-Code</option>
+                            <option value="Fridge-Tag 2 Device">Fridge-Tag 2 Device</option>
+                        </optgroup>
+                        <optgroup label="Campaign Vaccine Received">
+                            <option value="NID/ Oral Polio Vaccine">NID/ Oral Polio Vaccine</option>
+                            <option value="HPV (Campaign)">HPV (Campaign)</option>
+                            <option value="Measles-Rubella (Campaign)">Measles-Rubella (Campaign)</option>
+                            <option value="MR-Diluent (Campaign)">MR-Diluent (Campaign)</option>
+                            <option value="TCV (Campaign)">TCV (Campaign)</option>
+                            <option value="Droppers">Droppers</option>
+                            <option value="Finger Markers">Finger Markers</option>
+                            <option value="Scissor">Scissor</option>
+                            <option value="Mobile Tally Sheet">Mobile Tally Sheet</option>
+                            <option value="Roming Tally Sheet">Roming Tally Sheet</option>
+                            <option value="Fixed Tally Sheet">Fixed Tally Sheet</option>
+                            <option value="UCMO Form">UCMO Form</option>
+                            <option value="Area Incharge Form">Area Incharge Form</option>
+                            <option value="Zero Dose Form">Zero Dose Form</option>
+                            <option value="AEFI Form">AEFI Form</option>
+                            <option value="Reporting Form">Reporting Form</option>
+                            <option value="Red Capsule (Vitamin-A)">Red Capsule (Vitamin-A)</option>
+                            <option value="Blue Capsule (Vitamin-A)">Blue Capsule (Vitamin-A)</option>
+                            <option value="Zip Locker">Zip Locker</option>
+                            <option value="Cap">Cap</option>
+                            <option value="Jackets">Jackets</option>
+                            <option value="Senitizer">Senitizer</option>
+                            <option value="Rotary Vaccine Carrier">Rotary Vaccine Carrier</option>
+                            <option value="Dustbin">Dustbin</option>
+                        </optgroup>
+                        <optgroup label="Registers & Records">
+                            <option value="Daily Vaccination Register">Daily Vaccination Register</option>
+                            <option value="Permenant Child Register">Permenant Child Register</option>
+                            <option value="Permenant Women Register">Permenant Women Register</option>
+                            <option value="HPV Permenant Register">HPV Permenant Register</option>
+                            <option value="Vaccine Consumption Book">Vaccine Consumption Book</option>
+                            <option value="Stock Book">Stock Book</option>
+                            <option value="EPI Tally Sheet">EPI Tally Sheet</option>
+                            <option value="Temprature Sheet">Temprature Sheet</option>
+                            <option value="Monitoring Chart">Monitoring Chart</option>
+                            <option value="EPI Monthly Report">EPI Monthly Report</option>
+                            <option value="AEFI Book">AEFI Book</option>
+                            <option value="Zero Weekly Surveillance Book">Zero Weekly Surveillance Book</option>
+                            <option value="VPD Weekly Reporting Book">VPD Weekly Reporting Book</option>
+                        </optgroup>
+                    </select>
+                </div>
+            </div>
+
+            <form id="receivedForm" onsubmit="handleFormSubmit(event)">
+                
+                <div class="row">
+                    <div class="col">
+                        <label for="formDate">Select Date (DD/MM/YYYY Calendar)</label>
+                        <input type="text" id="formDate" placeholder="DD/MM/YYYY" onfocus="this.type='date'" onblur="if(!this.value)this.type='text'" required>
+                    </div>
+                    <div class="col">
+                        <label for="formTime">Time (12-Hour Format - Auto on Submit)</label>
+                        <input type="text" id="formTime" readonly style="background-color: #f8fafc; font-weight: bold; color: #0f4c5c;" placeholder="Auto-generated on submit">
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col">
+                        <label for="sourceOfStock">Source of Received Stock (Received From)</label>
+                        <select id="sourceOfStock" required>
+                            <option value="District Health Office District Naushahro Feroze Warehouse" selected>District Health Office District Naushahro Feroze Warehouse</option>
+                        </select>
+                    </div>
+                    <div class="col">
+                        <label for="receiverName">Receiver Name / Officer Name</label>
+                        <input type="text" id="receiverName" placeholder="Enter Receiver Name" required>
+                    </div>
+                    <div class="col">
+                        <label for="issuedBy">Issued By</label>
+                        <input type="text" id="issuedBy" placeholder="Enter Issuer Name" required>
+                    </div>
+                </div>
+
+                <div class="section-title">💉 Vaccines Received</div>
+                <div class="grid-items" id="vaccinesGrid">
+                    
+                    <div class="item-card" data-name="OPV">
+                        <div class="item-title">OPV</div>
+                        <div class="item-subfields">
+                            <div><label>Quantity</label><input type="number" min="0" value="0" class="item-qty" id="rec_v_opv"></div>
+                            <div><label>No. of Doses</label><input type="text" value="20" readonly style="background:#f1f5f9; font-weight:bold;" class="item-doses-input"></div>
+                            <div><label>Company Name</label><input type="text" placeholder="Optional" class="item-company"></div>
+                            <div><label>Expiry Date (DD/MM/YYYY)</label><input type="text" placeholder="DD/MM/YYYY" onfocus="this.type='date'" onblur="if(!this.value)this.type='text'" class="item-expiry"></div>
+                        </div>
+                    </div>
+
+                    <div class="item-card" data-name="BCG">
+                        <div class="item-title">BCG</div>
+                        <div class="item-subfields">
+                            <div><label>Quantity</label><input type="number" min="0" value="0" class="item-qty" id="rec_v_bcg"></div>
+                            <div><label>No. of Doses</label><input type="text" value="20" readonly style="background:#f1f5f9; font-weight:bold;" class="item-doses-input"></div>
+                            <div><label>Company Name</label><input type="text" placeholder="Optional" class="item-company"></div>
+                            <div><label>Expiry Date (DD/MM/YYYY)</label><input type="text" placeholder="DD/MM/YYYY" onfocus="this.type='date'" onblur="if(!this.value)this.type='text'" class="item-expiry"></div>
+                        </div>
+                    </div>
+
+                    <div class="item-card" data-name="BCG Diluent">
+                        <div class="item-title">BCG Diluent</div>
+                        <div class="item-subfields">
+                            <div><label>Quantity</label><input type="number" min="0" value="0" class="item-qty" id="rec_v_bcg_dil"></div>
+                            <div><label>No. of Doses</label><input type="text" value="20" readonly style="background:#f1f5f9; font-weight:bold;" class="item-doses-input"></div>
+                            <div><label>Company Name</label><input type="text" placeholder="Optional" class="item-company"></div>
+                            <div><label>Expiry Date (DD/MM/YYYY)</label><input type="text" placeholder="DD/MM/YYYY" onfocus="this.type='date'" onblur="if(!this.value)this.type='text'" class="item-expiry"></div>
+                        </div>
+                    </div>
+
+                    <div class="item-card" data-name="HEP-B">
+                        <div class="item-title">HEP-B</div>
+                        <div class="item-subfields">
+                            <div><label>Quantity</label><input type="number" min="0" value="0" class="item-qty" id="rec_v_hepb"></div>
+                            <div><label>No. of Doses</label><input type="text" value="01" readonly style="background:#f1f5f9; font-weight:bold;" class="item-doses-input"></div>
+                            <div><label>Company Name</label><input type="text" placeholder="Optional" class="item-company"></div>
+                            <div><label>Expiry Date (DD/MM/YYYY)</label><input type="text" placeholder="DD/MM/YYYY" onfocus="this.type='date'" onblur="if(!this.value)this.type='text'" class="item-expiry"></div>
+                        </div>
+                    </div>
+
+                    <div class="item-card" data-name="Pentavalent">
+                        <div class="item-title">Pentavalent</div>
+                        <div class="item-subfields">
+                            <div><label>Quantity</label><input type="number" min="0" value="0" class="item-qty" id="rec_v_penta"></div>
+                            <div><label>No. of Doses</label><input type="text" value="01" readonly style="background:#f1f5f9; font-weight:bold;" class="item-doses-input"></div>
+                            <div><label>Company Name</label><input type="text" placeholder="Optional" class="item-company"></div>
+                            <div><label>Expiry Date (DD/MM/YYYY)</label><input type="text" placeholder="DD/MM/YYYY" onfocus="this.type='date'" onblur="if(!this.value)this.type='text'" class="item-expiry"></div>
+                        </div>
+                    </div>
+
+                    <div class="item-card" data-name="Pentavalent-10 doses">
+                        <div class="item-title">Pentavalent-10 doses</div>
+                        <div class="item-subfields">
+                            <div><label>Quantity</label><input type="number" min="0" value="0" class="item-qty" id="rec_v_penta10"></div>
+                            <div><label>No. of Doses</label><input type="text" value="10" readonly style="background:#f1f5f9; font-weight:bold;" class="item-doses-input"></div>
+                            <div><label>Company Name</label><input type="text" placeholder="Optional" class="item-company"></div>
+                            <div><label>Expiry Date (DD/MM/YYYY)</label><input type="text" placeholder="DD/MM/YYYY" onfocus="this.type='date'" onblur="if(!this.value)this.type='text'" class="item-expiry"></div>
+                        </div>
+                    </div>
+
+                    <div class="item-card" data-name="PCV-13">
+                        <div class="item-title">PCV-13</div>
+                        <div class="item-subfields">
+                            <div><label>Quantity</label><input type="number" min="0" value="0" class="item-qty" id="rec_v_pcv13"></div>
+                            <div><label>No. of Doses</label><input type="text" value="04" readonly style="background:#f1f5f9; font-weight:bold;" class="item-doses-input"></div>
+                            <div><label>Company Name</label><input type="text" placeholder="Optional" class="item-company"></div>
+                            <div><label>Expiry Date (DD/MM/YYYY)</label><input type="text" placeholder="DD/MM/YYYY" onfocus="this.type='date'" onblur="if(!this.value)this.type='text'" class="item-expiry"></div>
+                        </div>
+                    </div>
+
+                    <div class="item-card" data-name="Rotavirus">
+                        <div class="item-title">Rotavirus</div>
+                        <div class="item-subfields">
+                            <div><label>Quantity</label><input type="number" min="0" value="0" class="item-qty" id="rec_v_rota"></div>
+                            <div><label>No. of Doses</label><input type="text" value="1.5 ml" readonly style="background:#f1f5f9; font-weight:bold;" class="item-doses-input"></div>
+                            <div><label>Company Name</label><input type="text" placeholder="Optional" class="item-company"></div>
+                            <div><label>Expiry Date (DD/MM/YYYY)</label><input type="text" placeholder="DD/MM/YYYY" onfocus="this.type='date'" onblur="if(!this.value)this.type='text'" class="item-expiry"></div>
+                        </div>
+                    </div>
+
+                    <div class="item-card" data-name="IPV">
+                        <div class="item-title">IPV</div>
+                        <div class="item-subfields">
+                            <div><label>Quantity</label><input type="number" min="0" value="0" class="item-qty" id="rec_v_ipv"></div>
+                            <div><label>No. of Doses</label><input type="text" value="10" readonly style="background:#f1f5f9; font-weight:bold;" class="item-doses-input"></div>
+                            <div><label>Company Name</label><input type="text" placeholder="Optional" class="item-company"></div>
+                            <div><label>Expiry Date (DD/MM/YYYY)</label><input type="text" placeholder="DD/MM/YYYY" onfocus="this.type='date'" onblur="if(!this.value)this.type='text'" class="item-expiry"></div>
+                        </div>
+                    </div>
+
+                    <div class="item-card" data-name="Measles-Rubella">
+                        <div class="item-title">Measles-Rubella</div>
+                        <div class="item-subfields">
+                            <div><label>Quantity</label><input type="number" min="0" value="0" class="item-qty" id="rec_v_mr"></div>
+                            <div><label>No. of Doses</label><input type="text" value="10" readonly style="background:#f1f5f9; font-weight:bold;" class="item-doses-input"></div>
+                            <div><label>Company Name</label><input type="text" placeholder="Optional" class="item-company"></div>
+                            <div><label>Expiry Date (DD/MM/YYYY)</label><input type="text" placeholder="DD/MM/YYYY" onfocus="this.type='date'" onblur="if(!this.value)this.type='text'" class="item-expiry"></div>
+                        </div>
+                    </div>
+
+                    <div class="item-card" data-name="MR-Diluent">
+                        <div class="item-title">MR-Diluent</div>
+                        <div class="item-subfields">
+                            <div><label>Quantity</label><input type="number" min="0" value="0" class="item-qty" id="rec_v_mr_dil"></div>
+                            <div><label>No. of Doses</label><input type="text" value="10" readonly style="background:#f1f5f9; font-weight:bold;" class="item-doses-input"></div>
+                            <div><label>Company Name</label><input type="text" placeholder="Optional" class="item-company"></div>
+                            <div><label>Expiry Date (DD/MM/YYYY)</label><input type="text" placeholder="DD/MM/YYYY" onfocus="this.type='date'" onblur="if(!this.value)this.type='text'" class="item-expiry"></div>
+                        </div>
+                    </div>
+
+                    <div class="item-card" data-name="Measles-Rubella 05 doses">
+                        <div class="item-title">Measles-Rubella 05 doses</div>
+                        <div class="item-subfields">
+                            <div><label>Quantity</label><input type="number" min="0" value="0" class="item-qty" id="rec_v_mr05"></div>
+                            <div><label>No. of Doses</label><input type="text" value="05" readonly style="background:#f1f5f9; font-weight:bold;" class="item-doses-input"></div>
+                            <div><label>Company Name</label><input type="text" placeholder="Optional" class="item-company"></div>
+                            <div><label>Expiry Date (DD/MM/YYYY)</label><input type="text" placeholder="DD/MM/YYYY" onfocus="this.type='date'" onblur="if(!this.value)this.type='text'" class="item-expiry"></div>
+                        </div>
+                    </div>
+
+                    <div class="item-card" data-name="MR-Diluent 05 doses">
+                        <div class="item-title">MR-Diluent 05 doses</div>
+                        <div class="item-subfields">
+                            <div><label>Quantity</label><input type="number" min="0" value="0" class="item-qty" id="rec_v_mr05_dil"></div>
+                            <div><label>No. of Doses</label><input type="text" value="05" readonly style="background:#f1f5f9; font-weight:bold;" class="item-doses-input"></div>
+                            <div><label>Company Name</label><input type="text" placeholder="Optional" class="item-company"></div>
+                            <div><label>Expiry Date (DD/MM/YYYY)</label><input type="text" placeholder="DD/MM/YYYY" onfocus="this.type='date'" onblur="if(!this.value)this.type='text'" class="item-expiry"></div>
+                        </div>
+                    </div>
+
+                    <div class="item-card" data-name="TCV">
+                        <div class="item-title">TCV</div>
+                        <div class="item-subfields">
+                            <div><label>Quantity</label><input type="number" min="0" value="0" class="item-qty" id="rec_v_tcv"></div>
+                            <div><label>No. of Doses</label><input type="text" value="05" readonly style="background:#f1f5f9; font-weight:bold;" class="item-doses-input"></div>
+                            <div><label>Company Name</label><input type="text" placeholder="Optional" class="item-company"></div>
+                            <div><label>Expiry Date (DD/MM/YYYY)</label><input type="text" placeholder="DD/MM/YYYY" onfocus="this.type='date'" onblur="if(!this.value)this.type='text'" class="item-expiry"></div>
+                        </div>
+                    </div>
+
+                    <div class="item-card" data-name="TD">
+                        <div class="item-title">TD</div>
+                        <div class="item-subfields">
+                            <div><label>Quantity</label><input type="number" min="0" value="0" class="item-qty" id="rec_v_td"></div>
+                            <div><label>No. of Doses</label>
+                                <select class="item-doses item-doses-select">
+                                    <option value="20">20</option>
+                                    <option value="10">10</option>
+                                </select>
+                            </div>
+                            <div><label>Company Name</label><input type="text" placeholder="Optional" class="item-company"></div>
+                            <div><label>Expiry Date (DD/MM/YYYY)</label><input type="text" placeholder="DD/MM/YYYY" onfocus="this.type='date'" onblur="if(!this.value)this.type='text'" class="item-expiry"></div>
+                        </div>
+                    </div>
+
+                    <div class="item-card" data-name="HPV">
+                        <div class="item-title">HPV</div>
+                        <div class="item-subfields">
+                            <div><label>Quantity</label><input type="number" min="0" value="0" class="item-qty" id="rec_v_hpv"></div>
+                            <div><label>No. of Doses</label><input type="text" value="01" readonly style="background:#f1f5f9; font-weight:bold;" class="item-doses-input"></div>
+                            <div><label>Company Name</label><input type="text" placeholder="Optional" class="item-company"></div>
+                            <div><label>Expiry Date (DD/MM/YYYY)</label><input type="text" placeholder="DD/MM/YYYY" onfocus="this.type='date'" onblur="if(!this.value)this.type='text'" class="item-expiry"></div>
+                        </div>
+                    </div>
+
+                    <div class="item-card" data-name="Panadol-Drops">
+                        <div class="item-title">Panadol-Drops</div>
+                        <div class="item-subfields">
+                            <div><label>Quantity</label><input type="number" min="0" value="0" class="item-qty" id="rec_v_panadol"></div>
+                            <div><label>No. of Doses</label><input type="text" value="30 ml" readonly style="background:#f1f5f9; font-weight:bold;" class="item-doses-input"></div>
+                            <div><label>Company Name</label><input type="text" placeholder="Optional" class="item-company"></div>
+                            <div><label>Expiry Date (DD/MM/YYYY)</label><input type="text" placeholder="DD/MM/YYYY" onfocus="this.type='date'" onblur="if(!this.value)this.type='text'" class="item-expiry"></div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <div class="section-title">📦 Logistics Received</div>
+                <div class="grid-items" id="logisticsGrid">
+                    <div class="item-card" data-name="0.05 ml Syringes">
+                        <div class="item-title">0.05 ml Syringes</div>
+                        <div class="item-subfields">
+                            <div><label>Quantity</label><input type="number" min="0" value="0" class="item-qty" id="rec_l_005s"></div>
+                            <div><label>Company Name</label><input type="text" placeholder="Optional" class="item-company"></div>
+                            <div><label>Expiry Date (DD/MM/YYYY)</label><input type="text" placeholder="DD/MM/YYYY" onfocus="this.type='date'" onblur="if(!this.value)this.type='text'" class="item-expiry"></div>
+                        </div>
+                    </div>
+                    <div class="item-card" data-name="0.5 ml Syringes">
+                        <div class="item-title">0.5 ml Syringes</div>
+                        <div class="item-subfields">
+                            <div><label>Quantity</label><input type="number" min="0" value="0" class="item-qty" id="rec_l_05s"></div>
+                            <div><label>Company Name</label><input type="text" placeholder="Optional" class="item-company"></div>
+                            <div><label>Expiry Date (DD/MM/YYYY)</label><input type="text" placeholder="DD/MM/YYYY" onfocus="this.type='date'" onblur="if(!this.value)this.type='text'" class="item-expiry"></div>
+                        </div>
+                    </div>
+                    <div class="item-card" data-name="2 ml Syringes">
+                        <div class="item-title">2 ml Syringes</div>
+                        <div class="item-subfields">
+                            <div><label>Quantity</label><input type="number" min="0" value="0" class="item-qty" id="rec_l_2s"></div>
+                            <div><label>Company Name</label><input type="text" placeholder="Optional" class="item-company"></div>
+                            <div><label>Expiry Date (DD/MM/YYYY)</label><input type="text" placeholder="DD/MM/YYYY" onfocus="this.type='date'" onblur="if(!this.value)this.type='text'" class="item-expiry"></div>
+                        </div>
+                    </div>
+                    <div class="item-card" data-name="5 ml Syringes">
+                        <div class="item-title">5 ml Syringes</div>
+                        <div class="item-subfields">
+                            <div><label>Quantity</label><input type="number" min="0" value="0" class="item-qty" id="rec_l_5s"></div>
+                            <div><label>Company Name</label><input type="text" placeholder="Optional" class="item-company"></div>
+                            <div><label>Expiry Date (DD/MM/YYYY)</label><input type="text" placeholder="DD/MM/YYYY" onfocus="this.type='date'" onblur="if(!this.value)this.type='text'" class="item-expiry"></div>
+                        </div>
+                    </div>
+                    <div class="item-card" data-name="Safety Box">
+                        <div class="item-title">Safety Box</div>
+                        <div class="item-subfields">
+                            <div><label>Quantity</label><input type="number" min="0" value="0" class="item-qty" id="rec_l_safety"></div>
+                            <div><label>Company Name</label><input type="text" placeholder="Optional" class="item-company"></div>
+                            <div><label>Expiry Date (DD/MM/YYYY)</label><input type="text" placeholder="DD/MM/YYYY" onfocus="this.type='date'" onblur="if(!this.value)this.type='text'" class="item-expiry"></div>
+                        </div>
+                    </div>
+                    <div class="item-card" data-name="Droppers">
+                        <div class="item-title">Droppers</div>
+                        <div class="item-subfields">
+                            <div><label>Quantity</label><input type="number" min="0" value="0" class="item-qty" id="rec_l_droppers"></div>
+                            <div><label>Company Name</label><input type="text" placeholder="Optional" class="item-company"></div>
+                            <div><label>Expiry Date (DD/MM/YYYY)</label><input type="text" placeholder="DD/MM/YYYY" onfocus="this.type='date'" onblur="if(!this.value)this.type='text'" class="item-expiry"></div>
+                        </div>
+                    </div>
+                    <div class="item-card" data-name="Vaccine Carrier">
+                        <div class="item-title">Vaccine Carrier</div>
+                        <div class="item-subfields">
+                            <div><label>Quantity</label><input type="number" min="0" value="0" class="item-qty" id="rec_l_vac_carrier"></div>
+                        </div>
+                    </div>
+                    <div class="item-card" data-name="Vaccination Card">
+                        <div class="item-title">Vaccination Card</div>
+                        <div class="item-subfields">
+                            <div><label>Quantity</label><input type="number" min="0" value="0" class="item-qty" id="rec_l_card"></div>
+                        </div>
+                    </div>
+                    <div class="item-card" data-name="QR-Code">
+                        <div class="item-title">QR-Code</div>
+                        <div class="item-subfields">
+                            <div><label>Quantity</label><input type="number" min="0" value="0" class="item-qty" id="rec_l_qrcode"></div>
+                        </div>
+                    </div>
+                    <div class="item-card" data-name="Fridge-Tag 2 Device">
+                        <div class="item-title">Fridge-Tag 2 Device</div>
+                        <div class="item-subfields">
+                            <div><label>Quantity</label><input type="number" min="0" value="0" class="item-qty" id="rec_l_fridgetag"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="section-title">🚀 CAMPAIGN VACCINE RECEIVED</div>
+                <div class="grid-items" id="campaignGrid">
+                    <div class="item-card" data-name="NID/ Oral Polio Vaccine">
+                        <div class="item-title">NID/ Oral Polio Vaccine</div>
+                        <div class="item-subfields">
+                            <div><label>Quantity</label><input type="number" min="0" value="0" class="item-qty" id="rec_camp_nid"></div>
+                            <div><label>No. of Doses</label><input type="text" value="20" readonly style="background:#f1f5f9; font-weight:bold;" class="item-doses-input"></div>
+                            <div><label>Company Name</label><input type="text" placeholder="Optional" class="item-company"></div>
+                            <div><label>Expiry Date (DD/MM/YYYY)</label><input type="text" placeholder="DD/MM/YYYY" onfocus="this.type='date'" onblur="if(!this.value)this.type='text'" class="item-expiry"></div>
+                        </div>
+                    </div>
+                    <div class="item-card" data-name="HPV (Campaign)">
+                        <div class="item-title">HPV (Campaign)</div>
+                        <div class="item-subfields">
+                            <div><label>Quantity</label><input type="number" min="0" value="0" class="item-qty" id="rec_camp_hpv"></div>
+                            <div><label>No. of Doses</label><input type="text" value="01" readonly style="background:#f1f5f9; font-weight:bold;" class="item-doses-input"></div>
+                            <div><label>Company Name</label><input type="text" placeholder="Optional" class="item-company"></div>
+                            <div><label>Expiry Date (DD/MM/YYYY)</label><input type="text" placeholder="DD/MM/YYYY" onfocus="this.type='date'" onblur="if(!this.value)this.type='text'" class="item-expiry"></div>
+                        </div>
+                    </div>
+                    <div class="item-card" data-name="Measles-Rubella (Campaign)">
+                        <div class="item-title">Measles-Rubella (Campaign)</div>
+                        <div class="item-subfields">
+                            <div><label>Quantity</label><input type="number" min="0" value="0" class="item-qty" id="rec_camp_mr"></div>
+                            <div><label>No. of Doses</label>
+                                <select class="item-doses item-doses-select">
+                                    <option value="05">05</option>
+                                    <option value="10">10</option>
+                                </select>
+                            </div>
+                            <div><label>Company Name</label><input type="text" placeholder="Optional" class="item-company"></div>
+                            <div><label>Expiry Date (DD/MM/YYYY)</label><input type="text" placeholder="DD/MM/YYYY" onfocus="this.type='date'" onblur="if(!this.value)this.type='text'" class="item-expiry"></div>
+                        </div>
+                    </div>
+                    <div class="item-card" data-name="MR-Diluent (Campaign)">
+                        <div class="item-title">MR-Diluent (Campaign)</div>
+                        <div class="item-subfields">
+                            <div><label>Quantity</label><input type="number" min="0" value="0" class="item-qty" id="rec_camp_mrdil"></div>
+                            <div><label>No. of Doses</label>
+                                <select class="item-doses item-doses-select">
+                                    <option value="05">05</option>
+                                    <option value="10">10</option>
+                                </select>
+                            </div>
+                            <div><label>Company Name</label><input type="text" placeholder="Optional" class="item-company"></div>
+                            <div><label>Expiry Date (DD/MM/YYYY)</label><input type="text" placeholder="DD/MM/YYYY" onfocus="this.type='date'" onblur="if(!this.value)this.type='text'" class="item-expiry"></div>
+                        </div>
+                    </div>
+                    <div class="item-card" data-name="TCV (Campaign)">
+                        <div class="item-title">TCV (Campaign)</div>
+                        <div class="item-subfields">
+                            <div><label>Quantity</label><input type="number" min="0" value="0" class="item-qty" id="rec_camp_tcv"></div>
+                            <div><label>No. of Doses</label><input type="text" value="05" readonly style="background:#f1f5f9; font-weight:bold;" class="item-doses-input"></div>
+                            <div><label>Company Name</label><input type="text" placeholder="Optional" class="item-company"></div>
+                            <div><label>Expiry Date (DD/MM/YYYY)</label><input type="text" placeholder="DD/MM/YYYY" onfocus="this.type='date'" onblur="if(!this.value)this.type='text'" class="item-expiry"></div>
+                        </div>
+                    </div>
+                    <div class="item-card" data-name="Droppers">
+                        <div class="item-title">Droppers</div>
+                        <div class="item-subfields">
+                            <div><label>Quantity</label><input type="number" min="0" value="0" class="item-qty" id="rec_camp_droppers"></div>
+                            <div><label>Company Name</label><input type="text" placeholder="Optional" class="item-company"></div>
+                            <div><label>Expiry Date (DD/MM/YYYY)</label><input type="text" placeholder="DD/MM/YYYY" onfocus="this.type='date'" onblur="if(!this.value)this.type='text'" class="item-expiry"></div>
+                        </div>
+                    </div>
+                    <div class="item-card" data-name="Finger Markers">
+                        <div class="item-title">Finger Markers</div>
+                        <div class="item-subfields">
+                            <div><label>Quantity</label><input type="number" min="0" value="0" class="item-qty" id="rec_camp_markers"></div>
+                        </div>
+                    </div>
+                    <div class="item-card" data-name="Scissor">
+                        <div class="item-title">Scissor</div>
+                        <div class="item-subfields">
+                            <div><label>Quantity</label><input type="number" min="0" value="0" class="item-qty" id="rec_camp_scissor"></div>
+                        </div>
+                    </div>
+                    <div class="item-card" data-name="Mobile Tally Sheet">
+                        <div class="item-title">Mobile Tally Sheet</div>
+                        <div class="item-subfields">
+                            <div><label>Quantity</label><input type="number" min="0" value="0" class="item-qty" id="rec_camp_mobtally"></div>
+                        </div>
+                    </div>
+                    <div class="item-card" data-name="Roming Tally Sheet">
+                        <div class="item-title">Roming Tally Sheet</div>
+                        <div class="item-subfields">
+                            <div><label>Quantity</label><input type="number" min="0" value="0" class="item-qty" id="rec_camp_romtally"></div>
+                        </div>
+                    </div>
+                    <div class="item-card" data-name="Fixed Tally Sheet">
+                        <div class="item-title">Fixed Tally Sheet</div>
+                        <div class="item-subfields">
+                            <div><label>Quantity</label><input type="number" min="0" value="0" class="item-qty" id="rec_camp_fixtally"></div>
+                        </div>
+                    </div>
+                    <div class="item-card" data-name="UCMO Form">
+                        <div class="item-title">UCMO Form</div>
+                        <div class="item-subfields">
+                            <div><label>Quantity</label><input type="number" min="0" value="0" class="item-qty" id="rec_camp_ucmo"></div>
+                        </div>
+                    </div>
+                    <div class="item-card" data-name="Area Incharge Form">
+                        <div class="item-title">Area Incharge Form</div>
+                        <div class="item-subfields">
+                            <div><label>Quantity</label><input type="number" min="0" value="0" class="item-qty" id="rec_camp_areainc"></div>
+                        </div>
+                    </div>
+                    <div class="item-card" data-name="Zero Dose Form">
+                        <div class="item-title">Zero Dose Form</div>
+                        <div class="item-subfields">
+                            <div><label>Quantity</label><input type="number" min="0" value="0" class="item-qty" id="rec_camp_zerodose"></div>
+                        </div>
+                    </div>
+                    <div class="item-card" data-name="AEFI Form">
+                        <div class="item-title">AEFI Form</div>
+                        <div class="item-subfields">
+                            <div><label>Quantity</label><input type="number" min="0" value="0" class="item-qty" id="rec_camp_aefi"></div>
+                        </div>
+                    </div>
+                    <div class="item-card" data-name="Reporting Form">
+                        <div class="item-title">Reporting Form</div>
+                        <div class="item-subfields">
+                            <div><label>Quantity</label><input type="number" min="0" value="0" class="item-qty" id="rec_camp_repform"></div>
+                        </div>
+                    </div>
+                    <div class="item-card" data-name="Red Capsule (Vitamin-A)">
+                        <div class="item-title">Red Capsule (Vitamin-A)</div>
+                        <div class="item-subfields">
+                            <div><label>Quantity</label><input type="number" min="0" value="0" class="item-qty" id="rec_camp_redcap"></div>
+                            <div><label>Company Name</label><input type="text" placeholder="Optional" class="item-company"></div>
+                            <div><label>Expiry Date (DD/MM/YYYY)</label><input type="text" placeholder="DD/MM/YYYY" onfocus="this.type='date'" onblur="if(!this.value)this.type='text'" class="item-expiry"></div>
+                        </div>
+                    </div>
+                    <div class="item-card" data-name="Blue Capsule (Vitamin-A)">
+                        <div class="item-title">Blue Capsule (Vitamin-A)</div>
+                        <div class="item-subfields">
+                            <div><label>Quantity</label><input type="number" min="0" value="0" class="item-qty" id="rec_camp_bluecap"></div>
+                            <div><label>Company Name</label><input type="text" placeholder="Optional" class="item-company"></div>
+                            <div><label>Expiry Date (DD/MM/YYYY)</label><input type="text" placeholder="DD/MM/YYYY" onfocus="this.type='date'" onblur="if(!this.value)this.type='text'" class="item-expiry"></div>
+                        </div>
+                    </div>
+                    <div class="item-card" data-name="Zip Locker">
+                        <div class="item-title">Zip Locker</div>
+                        <div class="item-subfields">
+                            <div><label>Quantity</label><input type="number" min="0" value="0" class="item-qty" id="rec_camp_ziplocker"></div>
+                        </div>
+                    </div>
+                    <div class="item-card" data-name="Cap">
+                        <div class="item-title">Cap</div>
+                        <div class="item-subfields">
+                            <div><label>Quantity</label><input type="number" min="0" value="0" class="item-qty" id="rec_camp_cap"></div>
+                        </div>
+                    </div>
+                    <div class="item-card" data-name="Jackets">
+                        <div class="item-title">Jackets</div>
+                        <div class="item-subfields">
+                            <div><label>Quantity</label><input type="number" min="0" value="0" class="item-qty" id="rec_camp_jackets"></div>
+                        </div>
+                    </div>
+                    <div class="item-card" data-name="Senitizer">
+                        <div class="item-title">Senitizer</div>
+                        <div class="item-subfields">
+                            <div><label>Quantity</label><input type="number" min="0" value="0" class="item-qty" id="rec_camp_senitizer"></div>
+                            <div><label>Company Name</label><input type="text" placeholder="Optional" class="item-company"></div>
+                            <div><label>Expiry Date (DD/MM/YYYY)</label><input type="text" placeholder="DD/MM/YYYY" onfocus="this.type='date'" onblur="if(!this.value)this.type='text'" class="item-expiry"></div>
+                        </div>
+                    </div>
+                    <div class="item-card" data-name="Rotary Vaccine Carrier">
+                        <div class="item-title">Rotary Vaccine Carrier</div>
+                        <div class="item-subfields">
+                            <div><label>Quantity</label><input type="number" min="0" value="0" class="item-qty" id="rec_camp_rotcarrier"></div>
+                        </div>
+                    </div>
+                    <div class="item-card" data-name="Dustbin">
+                        <div class="item-title">Dustbin</div>
+                        <div class="item-subfields">
+                            <div><label>Quantity</label><input type="number" min="0" value="0" class="item-qty" id="rec_camp_dustbin"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="section-title">📋 Registers & Records Received</div>
+                <div class="grid-items" id="registersGrid">
+                    <div class="item-card" data-name="Daily Vaccination Register">
+                        <div class="item-title">Daily Vaccination Register</div>
+                        <div class="item-subfields">
+                            <div><label>Quantity</label><input type="number" min="0" value="0" class="item-qty" id="rec_r_daily"></div>
+                        </div>
+                    </div>
+                    <div class="item-card" data-name="Permenant Child Register">
+                        <div class="item-title">Permenant Child Register</div>
+                        <div class="item-subfields">
+                            <div><label>Quantity</label><input type="number" min="0" value="0" class="item-qty" id="rec_r_child"></div>
+                        </div>
+                    </div>
+                    <div class="item-card" data-name="Permenant Women Register">
+                        <div class="item-title">Permenant Women Register</div>
+                        <div class="item-subfields">
+                            <div><label>Quantity</label><input type="number" min="0" value="0" class="item-qty" id="rec_r_women"></div>
+                        </div>
+                    </div>
+                    <div class="item-card" data-name="HPV Permenant Register">
+                        <div class="item-title">HPV Permenant Register</div>
+                        <div class="item-subfields">
+                            <div><label>Quantity</label><input type="number" min="0" value="0" class="item-qty" id="rec_r_hpvreg"></div>
+                        </div>
+                    </div>
+                    <div class="item-card" data-name="Vaccine Consumption Book">
+                        <div class="item-title">Vaccine Consumption Book</div>
+                        <div class="item-subfields">
+                            <div><label>Quantity</label><input type="number" min="0" value="0" class="item-qty" id="rec_r_reqbook"></div>
+                        </div>
+                    </div>
+                    <div class="item-card" data-name="Stock Book">
+                        <div class="item-title">Stock Book</div>
+                        <div class="item-subfields">
+                            <div><label>Quantity</label><input type="number" min="0" value="0" class="item-qty" id="rec_r_stockbook"></div>
+                        </div>
+                    </div>
+                    <div class="item-card" data-name="EPI Tally Sheet">
+                        <div class="item-title">EPI Tally Sheet</div>
+                        <div class="item-subfields">
+                            <div><label>Quantity</label><input type="number" min="0" value="0" class="item-qty" id="rec_r_tally"></div>
+                        </div>
+                    </div>
+                    <div class="item-card" data-name="Temprature Sheet">
+                        <div class="item-title">Temprature Sheet</div>
+                        <div class="item-subfields">
+                            <div><label>Quantity</label><input type="number" min="0" value="0" class="item-qty" id="rec_r_temp"></div>
+                        </div>
+                    </div>
+                    <div class="item-card" data-name="Monitoring Chart">
+                        <div class="item-title">Monitoring Chart</div>
+                        <div class="item-subfields">
+                            <div><label>Quantity</label><input type="number" min="0" value="0" class="item-qty" id="rec_r_monitor"></div>
+                        </div>
+                    </div>
+                    <div class="item-card" data-name="EPI Monthly Report">
+                        <div class="item-title">EPI Monthly Report</div>
+                        <div class="item-subfields">
+                            <div><label>Quantity</label><input type="number" min="0" value="0" class="item-qty" id="rec_r_monthlyrep"></div>
+                        </div>
+                    </div>
+                    <div class="item-card" data-name="AEFI Book">
+                        <div class="item-title">AEFI Book</div>
+                        <div class="item-subfields">
+                            <div><label>Quantity</label><input type="number" min="0" value="0" class="item-qty" id="rec_r_aefibook"></div>
+                        </div>
+                    </div>
+                    <div class="item-card" data-name="Zero Weekly Surveillance Book">
+                        <div class="item-title">Zero Weekly Surveillance Book</div>
+                        <div class="item-subfields">
+                            <div><label>Quantity</label><input type="number" min="0" value="0" class="item-qty" id="rec_r_zerobook"></div>
+                        </div>
+                    </div>
+                    <div class="item-card" data-name="VPD Weekly Reporting Book">
+                        <div class="item-title">VPD Weekly Reporting Book</div>
+                        <div class="item-subfields">
+                            <div><label>Quantity</label><input type="number" min="0" value="0" class="item-qty" id="rec_r_vpdbook"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="btn-group">
+                    <button type="submit" class="btn-submit">Save Received Stock</button>
+                    <button type="button" class="btn-download" onclick="downloadWordReport()">Download Total Report (MS Word)</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const mappingKeys = {
+            'OPV': 'v_opv', 'HEP-B': 'v_hepb', 'BCG': 'v_bcg', 'BCG Diluent': 'v_bcg_dil', 'Pentavalent': 'v_penta', 'Pentavalent-10 doses': 'v_penta10',
+            'PCV-13': 'v_pcv13', 'Rotavirus': 'v_rota', 'IPV': 'v_ipv', 'Measles-Rubella': 'v_mr', 'MR-Diluent': 'v_mr_dil', 'Measles-Rubella 05 doses': 'v_mr05', 'MR-Diluent 05 doses': 'v_mr05_dil',
+            'TCV': 'v_tcv', 'TD': 'v_td', 'HPV': 'v_hpv', 'Panadol-Drops': 'v_panadol',
+            '0.05 ml Syringes': 'l_005s', '0.5 ml Syringes': 'l_05s', '2 ml Syringes': 'l_2s', '5 ml Syringes': 'l_5s', 'Safety Box': 'l_safety',
+            'Droppers': 'l_droppers', 'Vaccine Carrier': 'l_vac_carrier', 'Vaccination Card': 'l_card', 'QR-Code': 'l_qrcode', 'Fridge-Tag 2 Device': 'l_fridgetag',
+            'NID/ Oral Polio Vaccine': 'camp_nid', 'HPV (Campaign)': 'camp_hpv', 'Measles-Rubella (Campaign)': 'camp_mr', 'MR-Diluent (Campaign)': 'camp_mrdil', 'TCV (Campaign)': 'camp_tcv',
+            'Finger Markers': 'camp_markers', 'Scissor': 'camp_scissor', 'Mobile Tally Sheet': 'camp_mobtally', 'Roming Tally Sheet': 'camp_romtally',
+            'Fixed Tally Sheet': 'camp_fixtally', 'UCMO Form': 'camp_ucmo', 'Area Incharge Form': 'camp_areainc', 'Zero Dose Form': 'camp_zerodose',
+            'AEFI Form': 'camp_aefi', 'Reporting Form': 'camp_repform', 'Red Capsule (Vitamin-A)': 'camp_redcap', 'Blue Capsule (Vitamin-A)': 'camp_bluecap',
+            'Zip Locker': 'camp_ziplocker', 'Cap': 'camp_cap', 'Jackets': 'camp_jackets', 'Senitizer': 'camp_senitizer', 'Rotary Vaccine Carrier': 'camp_rotcarrier',
+            'Dustbin': 'camp_dustbin',
+            'Daily Vaccination Register': 'r_daily', 'Permenant Child Register': 'r_child', 'Permenant Women Register': 'r_women',
+            'HPV Permenant Register': 'r_hpvreg', 'Vaccine Consumption Book': 'r_reqbook', 'Stock Book': 'r_stockbook',
+            'EPI Tally Sheet': 'r_tally', 'Temprature Sheet': 'r_temp', 'Monitoring Chart': 'r_monitor',
+            'EPI Monthly Report': 'r_monthlyrep', 'AEFI Book': 'r_aefibook', 'Zero Weekly Surveillance Book': 'r_zerobook', 'VPD Weekly Reporting Book': 'r_vpdbook'
+        };
+
+        function resetField(fieldId) {
+            let field = document.getElementById(fieldId);
+            field.value = "";
+            field.type = "text";
+        }
+
+        function handleFormSubmit(event) {
+            event.preventDefault();
+
+            let now = new Date();
+            let hours = now.getHours();
+            let minutes = String(now.getMinutes()).padStart(2, '0');
+            let seconds = String(now.getSeconds()).padStart(2, '0');
+            let ampm = hours >= 12 ? 'PM' : 'AM';
+            
+            hours = hours % 12;
+            hours = hours ? hours : 12; 
+            let strHours = String(hours).padStart(2, '0');
+
+            let time12Format = `${strHours}:${minutes}:${seconds} ${ampm}`;
+            document.getElementById('formTime').value = time12Format;
+
+            let formDate = document.getElementById('formDate').value;
+            let source = document.getElementById('sourceOfStock').value;
+            let receiver = document.getElementById('receiverName').value;
+            let issuedBy = document.getElementById('issuedBy').value;
+
+            let itemsData = {};
+            let detailedItems = [];
+            let cards = document.querySelectorAll('.item-card');
+            
+            cards.forEach(card => {
+                let itemName = card.getAttribute('data-name');
+                let qtyInput = card.querySelector('.item-qty');
+                let dosesInput = card.querySelector('.item-doses-input') || card.querySelector('.item-doses-select');
+                let companyInput = card.querySelector('.item-company');
+                let expiryInput = card.querySelector('.item-expiry');
+
+                let qty = qtyInput ? parseFloat(qtyInput.value) || 0 : 0;
+                let doses = dosesInput ? dosesInput.value : "N/A";
+                let company = companyInput ? (companyInput.value ? companyInput.value : "-") : "-";
+                let expiry = expiryInput ? (expiryInput.value ? expiryInput.value : "-") : "-";
+
+                let mappedKey = mappingKeys[itemName];
+                if (mappedKey) {
+                    itemsData[mappedKey] = qty;
+                }
+
+                detailedItems.push({
+                    name: itemName,
+                    qty: qty,
+                    doses: doses,
+                    company: company,
+                    expiry: expiry
+                });
+            });
+
+            const record = {
+                id: Date.now(),
+                type: 'RECEIVE',
+                date: formDate,
+                time: time12Format,
+                dateTime: `${formDate} ${time12Format}`,
+                unionCouncil: 'Naushahro Feroze',
+                epiCenter: source,
+                vaccinatorName: receiver,
+                issuedBy: issuedBy,
+                items: itemsData,
+                detailedItems: detailedItems
+            };
+
+            let allTransactions = JSON.parse(localStorage.getItem('epi_transactions')) || [];
+            allTransactions.push(record);
+            localStorage.setItem('epi_transactions', JSON.stringify(allTransactions));
+
+            alert(`Stock Received saved successfully and synchronized across all system files!\nDate: ${formDate}\nTime (12h): ${time12Format}\nReceiver: ${receiver}\nIssued By: ${issuedBy}`);
+
+            document.getElementById('receivedForm').reset();
+            document.getElementById('formTime').value = "";
+        }
+
+        function downloadWordReport() {
+            let fromDate = document.getElementById('reportFromDate').value;
+            let toDate = document.getElementById('reportToDate').value;
+            let selectedReportItem = document.getElementById('reportSearchDropdown').value;
+
+            if(!fromDate || !toDate) {
+                alert("Please select both 'From' and 'To' dates in the Total Receive Stock filter before downloading the Word report.");
+                document.getElementById('reportFromDate').focus();
+                return;
+            }
+
+            let allTransactions = JSON.parse(localStorage.getItem('epi_transactions')) || [];
+            let filteredRecords = allTransactions.filter(record => {
+                return record.type === 'RECEIVE' && record.date >= fromDate && record.date <= toDate;
+            });
+
+            if(filteredRecords.length === 0) {
+                alert("No saved stock received records found within the selected date range (" + fromDate + " to " + toDate + ").");
+                return;
+            }
+
+            // Extract unique or latest Receiver and Issuer names from filtered records to display at the top of the report
+            let lastReceiver = filteredRecords[filteredRecords.length - 1].vaccinatorName || "-";
+            let lastIssuedBy = filteredRecords[filteredRecords.length - 1].issuedBy || "-";
+
+            let aggregatedItems = {};
+
+            filteredRecords.forEach(record => {
+                if (record.detailedItems) {
+                    record.detailedItems.forEach(item => {
+                        if(selectedReportItem !== "" && item.name !== selectedReportItem) {
+                            return;
+                        }
+
+                        if(!aggregatedItems[item.name]) {
+                            aggregatedItems[item.name] = {
+                                name: item.name,
+                                totalQty: 0,
+                                doses: item.doses,
+                                company: item.company,
+                                expiry: item.expiry
+                            };
+                        }
+                        aggregatedItems[item.name].totalQty += parseFloat(item.qty) || 0;
+                    });
+                }
+            });
+
+            let htmlContent = `
+                <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
+                <head>
+                    <meta charset='utf-8'>
+                    <title>Total Receive Stock Report</title>
+                    <style>
+                        @page {
+                            size: A4;
+                            margin: 20mm;
+                        }
+                        body {
+                            font-family: 'Segoe UI', Arial, sans-serif;
+                            color: #333333;
+                            line-height: 1.4;
+                        }
+                        .header-box {
+                            text-align: center;
+                            border-bottom: 3px solid #0f4c5c;
+                            padding-bottom: 10px;
+                            margin-bottom: 20px;
+                        }
+                        h1 {
+                            font-size: 18px;
+                            color: #0f4c5c;
+                            margin-bottom: 5px;
+                            text-transform: uppercase;
+                        }
+                        h2 {
+                            font-size: 13px;
+                            color: #555555;
+                            font-weight: normal;
+                            margin-bottom: 10px;
+                        }
+                        .info-box {
+                            background-color: #f1f5f9;
+                            border: 1px solid #cbd5e1;
+                            padding: 10px;
+                            margin-bottom: 15px;
+                            font-size: 12px;
+                        }
+                        .section-heading {
+                            font-size: 14px;
+                            color: #0f4c5c;
+                            background: #e2e8f0;
+                            padding: 6px 10px;
+                            margin: 15px 0 8px 0;
+                            font-weight: bold;
+                            border-left: 4px solid #0f4c5c;
+                        }
+                        table.data-table {
+                            width: 100%;
+                            border-collapse: collapse;
+                            margin-bottom: 15px;
+                            font-size: 11px;
+                        }
+                        table.data-table th, table.data-table td {
+                            border: 1px solid #94a3b8;
+                            padding: 6px 8px;
+                            text-align: left;
+                        }
+                        table.data-table th {
+                            background-color: #0f4c5c;
+                            color: #ffffff;
+                            font-weight: bold;
+                        }
+                        table.data-table tr:nth-child(even) {
+                            background-color: #f8fafc;
+                        }
+                    </style>
+                </head>
+                <body>
+                    <div class="header-box">
+                        <h1>Expanded Program on Immunization (EPI)</h1>
+                        <h2>District & Taluka Naushahro Feroze - Total Receive Stock Report</h2>
+                        <p style="font-size: 11px; color: #64748b;">Report Date Range: <strong>${fromDate}</strong> to <strong>${toDate}</strong> ${selectedReportItem ? '| Item: <strong>' + selectedReportItem + '</strong>' : ''}</p>
+                    </div>
+
+                    <div class="info-box">
+                        <table style="width: 100%; border: none;">
+                            <tr>
+                                <td style="border: none;"><strong>Issued By:</strong> ${lastIssuedBy}</td>
+                                <td style="border: none;"><strong>Receiver Name / Officer Name:</strong> ${lastReceiver}</td>
+                            </tr>
+                        </table>
+                    </div>
+
+                    <div class="section-heading">Aggregated Stock Summary</div>
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Item Name</th>
+                                <th>Total Quantity Received</th>
+                                <th>No. of Doses</th>
+                                <th>Company Name</th>
+                                <th>Expiry Date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+            `;
+
+            let keys = Object.keys(aggregatedItems);
+            if(keys.length === 0) {
+                htmlContent += `
+                    <tr>
+                        <td colspan="5" style="text-align: center; color: #64748b; font-style: italic;">No matching items found for the selected report filters and date range.</td>
+                    </tr>
+                `;
+            } else {
+                keys.forEach(key => {
+                    let item = aggregatedItems[key];
+                    htmlContent += `
+                        <tr>
+                            <td><strong>${item.name}</strong></td>
+                            <td><strong>${item.totalQty}</strong></td>
+                            <td>${item.doses}</td>
+                            <td>${item.company}</td>
+                            <td>${item.expiry}</td>
+                        </tr>
+                    `;
+                });
+            }
+
+            htmlContent += `
+                        </tbody>
+                    </table>
+                </body>
+                </html>
+            `;
+
+            let blob = new Blob(['\ufeff' + htmlContent], {
+                type: 'application/msword'
+            });
+            
+            let url = URL.createObjectURL(blob);
+            let a = document.createElement('a');
+            a.href = url;
+            a.download = 'EPI_Total_Receive_Stock_Report.doc';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+    </script>
+</body>
+</html>
