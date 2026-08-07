@@ -434,6 +434,12 @@
         'r_monthlyrep': 'EPI Monthly Report', 'r_aefibook': 'AEFI Book', 'r_zerobook': 'Zero Weekly Surveillance Book', 'r_vpdbook': 'VPD Weekly Reporting Book'
     };
 
+    // Reverse mapping from item name to form key
+    const nameToKeyMap = {};
+    Object.keys(itemDetails).forEach(key => {
+        nameToKeyMap[itemDetails[key].toLowerCase()] = key;
+    });
+
     async function checkStockBalances() {
         try {
             const snapshot = await db.collection('epi_transactions').get();
@@ -442,12 +448,28 @@
 
             snapshot.forEach(doc => {
                 const tx = doc.data();
-                if (tx.items) {
-                    const txType = (tx.type || '').toUpperCase();
+                const txType = (tx.type || '').toUpperCase();
+
+                // Handle both 'items' (object) and 'detailedItems' (array format in Firestore)
+                if (tx.detailedItems && Array.isArray(tx.detailedItems)) {
+                    tx.detailedItems.forEach(item => {
+                        const itemName = (item.name || '').trim().toLowerCase();
+                        const qty = Number(item.qty) || 0;
+                        const mappedKey = nameToKeyMap[itemName];
+                        
+                        if (mappedKey && balances[mappedKey] !== undefined) {
+                            if (txType === 'RECEIVE' || !txType) {
+                                balances[mappedKey] += qty;
+                            } else if (txType === 'ISSUE') {
+                                balances[mappedKey] -= qty;
+                            }
+                        }
+                    });
+                } else if (tx.items) {
                     Object.keys(tx.items).forEach(key => {
                         if (balances[key] !== undefined) {
                             const val = Number(tx.items[key]) || 0;
-                            if (txType === 'RECEIVE') {
+                            if (txType === 'RECEIVE' || !txType) {
                                 balances[key] += val;
                             } else if (txType === 'ISSUE') {
                                 balances[key] -= val;
@@ -599,11 +621,20 @@
 
             const record = docRef.data();
             let issuedSummary = [];
-            Object.keys(record.items).forEach(key => {
-                if (record.items[key] > 0 && itemDetails[key]) {
-                    issuedSummary.push({ name: itemDetails[key], qty: record.items[key] });
-                }
-            });
+            
+            if (record.items) {
+                Object.keys(record.items).forEach(key => {
+                    if (record.items[key] > 0 && itemDetails[key]) {
+                        issuedSummary.push({ name: itemDetails[key], qty: record.items[key] });
+                    }
+                });
+            } else if (record.detailedItems) {
+                record.detailedItems.forEach(item => {
+                    if (item.qty > 0) {
+                        issuedSummary.push({ name: item.name, qty: item.qty });
+                    }
+                });
+            }
 
             generatePDF(record, issuedSummary);
         } catch (error) {
