@@ -1,18 +1,23 @@
-// firebase.js
-import { initializeApp } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-app.js";
-import { getFirestore, collection, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js";
+<script type="module">
+  // Import the functions you need from the SDKs you need
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-app.js";
+  import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-analytics.js";
+  // TODO: Add SDKs for Firebase products that you want to use
+  // https://firebase.google.com/docs/web/setup#available-libraries
 
-const firebaseConfig = {
-  apiKey: "AIzaSyDkGYva8XEryBevjHBJm3VSDRwjnOrb3kc",
-  authDomain: "epi-stock-c7945.firebaseapp.com",
-  projectId: "epi-stock-c7945",
-  storageBucket: "epi-stock-c7945.firebasestorage.app",
-  messagingSenderId: "966405212084",
-  appId: "1:966405212084:web:b523f41e8c011e409054e1",
-  measurementId: "G-L4QNDF2Z31"
-};
+  // Your web app's Firebase configuration
+  // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+  const firebaseConfig = {
+    apiKey: "AIzaSyChMj0SRQlA0MrsDGJHr8BNbxSKXuFAYPo",
+    authDomain: "epi-stock-39e88.firebaseapp.com",
+    projectId: "epi-stock-39e88",
+    storageBucket: "epi-stock-39e88.firebasestorage.app",
+    messagingSenderId: "893702330698",
+    appId: "1:893702330698:web:8f2adf7b9d541bb9d909b3",
+    measurementId: "G-ECDS1BK0Y6"
+  };
 
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-
-export { db, collection, addDoc, getDocs };
+  // Initialize Firebase
+  const app = initializeApp(firebaseConfig);
+  const analytics = getAnalytics(app);
+</script>
