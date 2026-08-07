@@ -6,9 +6,6 @@
     <title>EPI Stock Issue Form - Civil Hospital Naushahro Feroze</title>
     <!-- Include jsPDF library for professional PDF generation -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <!-- Include Firebase SDKs -->
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
     <style>
         * {
             box-sizing: border-box;
@@ -401,20 +398,9 @@
     </div>
 </div>
 
-<script>
-    // Firebase Configuration
-    const firebaseConfig = {
-        apiKey: "YOUR_API_KEY",
-        authDomain: "YOUR_AUTH_DOMAIN",
-        projectId: "YOUR_PROJECT_ID",
-        storageBucket: "YOUR_STORAGE_BUCKET",
-        messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-        appId: "YOUR_APP_ID"
-    };
-
-    // Initialize Firebase
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
+<script type="module">
+    import { db } from './firebase.js';
+    import { ref, get, push, child } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-database.js";
 
     const itemDetails = {
         'v_opv': 'OPV', 'v_hepb': 'HEP-B', 'v_bcg': 'BCG', 'v_bcg_dil': 'BCG Diluent', 'v_penta': 'Pentavalent', 'v_penta10': 'Pentavalent-10 doses',
@@ -434,80 +420,55 @@
         'r_monthlyrep': 'EPI Monthly Report', 'r_aefibook': 'AEFI Book', 'r_zerobook': 'Zero Weekly Surveillance Book', 'r_vpdbook': 'VPD Weekly Reporting Book'
     };
 
-    // Reverse mapping from item name to form key
-    const nameToKeyMap = {};
-    Object.keys(itemDetails).forEach(key => {
-        nameToKeyMap[itemDetails[key].toLowerCase()] = key;
-    });
-
     async function checkStockBalances() {
-        try {
-            const snapshot = await db.collection('epi_transactions').get();
-            let balances = {};
-            Object.keys(itemDetails).forEach(key => { balances[key] = 0; });
-
-            snapshot.forEach(doc => {
-                const tx = doc.data();
-                const txType = (tx.type || '').toUpperCase();
-
-                // Handle both 'items' (object) and 'detailedItems' (array format in Firestore)
-                if (tx.detailedItems && Array.isArray(tx.detailedItems)) {
-                    tx.detailedItems.forEach(item => {
-                        const itemName = (item.name || '').trim().toLowerCase();
-                        const qty = Number(item.qty) || 0;
-                        const mappedKey = nameToKeyMap[itemName];
-                        
-                        if (mappedKey && balances[mappedKey] !== undefined) {
-                            if (txType === 'RECEIVE' || !txType) {
-                                balances[mappedKey] += qty;
-                            } else if (txType === 'ISSUE') {
-                                balances[mappedKey] -= qty;
-                            }
-                        }
-                    });
-                } else if (tx.items) {
-                    Object.keys(tx.items).forEach(key => {
-                        if (balances[key] !== undefined) {
-                            const val = Number(tx.items[key]) || 0;
-                            if (txType === 'RECEIVE' || !txType) {
-                                balances[key] += val;
-                            } else if (txType === 'ISSUE') {
-                                balances[key] -= val;
-                            }
-                        }
-                    });
-                }
-            });
-
-            Object.keys(itemDetails).forEach(key => {
-                const inputField = document.getElementById(key);
-                const warningSpan = document.getElementById('warn_' + key);
-                if (!inputField) return;
-                const currentBal = balances[key];
-
-                if (currentBal <= 0) {
-                    inputField.value = 0;
-                    inputField.classList.add('stock-nil');
-                    inputField.setAttribute('disabled', 'true');
-                    if (warningSpan) {
-                        warningSpan.innerText = `Stock Nil (${currentBal})`;
-                        warningSpan.style.display = 'block';
-                    }
-                } else {
-                    inputField.classList.remove('stock-nil');
-                    inputField.removeAttribute('disabled');
-                    if (warningSpan) {
-                        warningSpan.style.display = 'none';
-                    }
-                }
-            });
-        } catch (error) {
-            console.error("Error checking stock balances from Firebase: ", error);
+        const dbRef = ref(db, 'epi_transactions');
+        const snapshot = await get(dbRef);
+        let transactions = [];
+        if (snapshot.exists()) {
+            transactions = Object.values(snapshot.val());
         }
+
+        let balances = {};
+        Object.keys(itemDetails).forEach(key => { balances[key] = 0; });
+
+        transactions.forEach(tx => {
+            if (tx.items) {
+                Object.keys(tx.items).forEach(key => {
+                    if (balances[key] !== undefined) {
+                        const val = Number(tx.items[key]) || 0;
+                        if (tx.type === 'RECEIVE') balances[key] += val;
+                        else if (tx.type === 'ISSUE') balances[key] -= val;
+                    }
+                });
+            }
+        });
+
+        Object.keys(itemDetails).forEach(key => {
+            const inputField = document.getElementById(key);
+            const warningSpan = document.getElementById('warn_' + key);
+            if (!inputField) return;
+            const currentBal = balances[key];
+
+            if (currentBal <= 0) {
+                inputField.value = 0;
+                inputField.classList.add('stock-nil');
+                inputField.setAttribute('disabled', 'true');
+                if (warningSpan) {
+                    warningSpan.innerText = `Stock Nil (${currentBal})`;
+                    warningSpan.style.display = 'block';
+                }
+            } else {
+                inputField.classList.remove('stock-nil');
+                inputField.removeAttribute('disabled');
+                if (warningSpan) {
+                    warningSpan.style.display = 'none';
+                }
+            }
+        });
     }
 
-    window.onload = function() {
-        checkStockBalances();
+    window.onload = async function() {
+        await checkStockBalances();
         document.getElementById('searchDate').addEventListener('change', updateVoucherDropdown);
     };
 
@@ -518,35 +479,29 @@
 
         if (!selectedDate) return;
 
-        try {
-            const snapshot = await db.collection('epi_transactions')
-                .where('date', '==', selectedDate)
-                .get();
-
-            if (snapshot.empty) {
-                selectDropdown.innerHTML = '<option value="">No vouchers found for this date</option>';
-                return;
-            }
-
-            snapshot.forEach(doc => {
-                const tx = doc.data();
-                if ((tx.type || '').toUpperCase() === 'ISSUE') {
-                    const opt = document.createElement('option');
-                    opt.value = doc.id;
-                    opt.textContent = `${tx.vaccinatorName || 'Unknown'} (${tx.epiCenter || ''}) - ${tx.time || ''}`;
-                    selectDropdown.appendChild(opt);
-                }
-            });
-            
-            if (selectDropdown.options.length <= 1) {
-                selectDropdown.innerHTML = '<option value="">No issue vouchers found for this date</option>';
-            }
-        } catch (error) {
-            console.error("Error fetching vouchers from Firebase: ", error);
+        const dbRef = ref(db, 'epi_transactions');
+        const snapshot = await get(dbRef);
+        let allTransactions = [];
+        if (snapshot.exists()) {
+            allTransactions = Object.values(snapshot.val());
         }
+
+        const filtered = allTransactions.filter(tx => tx.type === 'ISSUE' && tx.date === selectedDate);
+
+        if (filtered.length === 0) {
+            selectDropdown.innerHTML = '<option value="">No vouchers found for this date</option>';
+            return;
+        }
+
+        filtered.forEach(tx => {
+            const opt = document.createElement('option');
+            opt.value = tx.id;
+            opt.textContent = `${tx.vaccinatorName} (${tx.epiCenter}) - ${tx.time}`;
+            selectDropdown.appendChild(opt);
+        });
     }
 
-    async function saveIssueRecord(event) {
+    window.saveIssueRecord = async function(event) {
         event.preventDefault();
 
         let now = new Date();
@@ -580,7 +535,7 @@
         }
 
         const record = {
-            id: Date.now().toString(),
+            id: Date.now(),
             type: 'ISSUE',
             date: document.getElementById('issueDate').value,
             time: time12Format,
@@ -592,54 +547,42 @@
             items: itemsData
         };
 
-        try {
-            await db.collection('epi_transactions').add(record);
-            alert('Record Saved Successfully to Firebase!');
-            document.getElementById('issueForm').reset();
-            document.getElementById('district').value = "Naushahro Feroze";
-            document.getElementById('taluka').value = "Naushahro Feroze";
-            checkStockBalances();
-        } catch (error) {
-            console.error("Error saving record to Firebase: ", error);
-            alert('Failed to save record. Please check console for details.');
-        }
+        const dbRef = ref(db, 'epi_transactions');
+        await push(dbRef, record);
+
+        alert('Record Saved Successfully to Firebase!');
+        await checkStockBalances();
     }
 
-    async function downloadVoucherBySearch() {
+    window.downloadVoucherBySearch = async function() {
         const selectedId = document.getElementById('searchVoucherSelect').value;
         if (!selectedId) {
             alert('Please select a valid voucher from the dropdown list.');
             return;
         }
 
-        try {
-            const docRef = await db.collection('epi_transactions').doc(selectedId).get();
-            if (!docRef.exists) {
-                alert('Record not found!');
-                return;
-            }
-
-            const record = docRef.data();
-            let issuedSummary = [];
-            
-            if (record.items) {
-                Object.keys(record.items).forEach(key => {
-                    if (record.items[key] > 0 && itemDetails[key]) {
-                        issuedSummary.push({ name: itemDetails[key], qty: record.items[key] });
-                    }
-                });
-            } else if (record.detailedItems) {
-                record.detailedItems.forEach(item => {
-                    if (item.qty > 0) {
-                        issuedSummary.push({ name: item.name, qty: item.qty });
-                    }
-                });
-            }
-
-            generatePDF(record, issuedSummary);
-        } catch (error) {
-            console.error("Error fetching voucher for PDF download: ", error);
+        const dbRef = ref(db, 'epi_transactions');
+        const snapshot = await get(dbRef);
+        let allTransactions = [];
+        if (snapshot.exists()) {
+            allTransactions = Object.values(snapshot.val());
         }
+
+        const record = allTransactions.find(tx => tx.id == selectedId);
+
+        if (!record) {
+            alert('Record not found!');
+            return;
+        }
+
+        let issuedSummary = [];
+        Object.keys(record.items).forEach(key => {
+            if (record.items[key] > 0 && itemDetails[key]) {
+                issuedSummary.push({ name: itemDetails[key], qty: record.items[key] });
+            }
+        });
+
+        generatePDF(record, issuedSummary);
     }
 
     function generatePDF(record, issuedSummary) {
