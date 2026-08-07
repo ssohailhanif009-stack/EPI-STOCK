@@ -160,21 +160,18 @@
             background-color: #f8fafc;
         }
         .nav-links {
-            text-align: left;
+            text-align: center;
             margin-bottom: 15px;
         }
         .nav-links a {
-            background-color: var(--primary-color);
-            color: white;
-            padding: 8px 14px;
+            color: var(--primary-color);
             text-decoration: none;
             font-weight: bold;
-            border-radius: 5px;
-            font-size: 13px;
-            display: inline-block;
+            margin: 0 10px;
+            font-size: 14px;
         }
         .nav-links a:hover {
-            background-color: #0b3642;
+            text-decoration: underline;
         }
     </style>
 
@@ -395,7 +392,6 @@
             doc.save(`EPI_Stock_Book_${itemName}.pdf`);
         }
 
-        // Attach functions to window object so HTML can access them
         window.filterTable = filterTable;
         window.resetFilters = resetFilters;
         window.downloadPDF = downloadPDF;
@@ -409,7 +405,9 @@
 
 <div class="container">
     <div class="nav-links">
-        <a href="main.html">← Back to Home</a>
+        <a href="main.html">🏠 Home</a> | 
+        <a href="received.html">← Received Form</a> | 
+        <a href="issued.html">Issue Form →</a>
     </div>
 
     <div class="header-section">
