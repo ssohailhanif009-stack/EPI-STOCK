@@ -953,7 +953,23 @@
         </div>
     </div>
 
-    <script>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-app.js";
+        import { getFirestore, collection, addDoc, getDocs, query, where } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyChMj0SRQlA0MrsDGJHr8BNbxSKXuFAYPo",
+            authDomain: "epi-stock-39e88.firebaseapp.com",
+            projectId: "epi-stock-39e88",
+            storageBucket: "epi-stock-39e88.firebasestorage.app",
+            messagingSenderId: "893702330698",
+            appId: "1:893702330698:web:8f2adf7b9d541bb9d909b3",
+            measurementId: "G-ECDS1BK0Y6"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
         const mappingKeys = {
             'OPV': 'v_opv', 'HEP-B': 'v_hepb', 'BCG': 'v_bcg', 'BCG Diluent': 'v_bcg_dil', 'Pentavalent': 'v_penta', 'Pentavalent-10 doses': 'v_penta10',
             'PCV-13': 'v_pcv13', 'Rotavirus': 'v_rota', 'IPV': 'v_ipv', 'Measles-Rubella': 'v_mr', 'MR-Diluent': 'v_mr_dil', 'Measles-Rubella 05 doses': 'v_mr05', 'MR-Diluent 05 doses': 'v_mr05_dil',
@@ -972,13 +988,13 @@
             'EPI Monthly Report': 'r_monthlyrep', 'AEFI Book': 'r_aefibook', 'Zero Weekly Surveillance Book': 'r_zerobook', 'VPD Weekly Reporting Book': 'r_vpdbook'
         };
 
-        function resetField(fieldId) {
+        window.resetField = function(fieldId) {
             let field = document.getElementById(fieldId);
             field.value = "";
             field.type = "text";
         }
 
-        function handleFormSubmit(event) {
+        window.handleFormSubmit = async function(event) {
             event.preventDefault();
 
             let now = new Date();
@@ -1043,17 +1059,25 @@
                 detailedItems: detailedItems
             };
 
-            let allTransactions = JSON.parse(localStorage.getItem('epi_transactions')) || [];
-            allTransactions.push(record);
-            localStorage.setItem('epi_transactions', JSON.stringify(allTransactions));
+            try {
+                await addDoc(collection(db, "epi_transactions"), record);
+                
+                // Fallback / backup support to localStorage for seamless cross-page use
+                let allTransactions = JSON.parse(localStorage.getItem('epi_transactions')) || [];
+                allTransactions.push(record);
+                localStorage.setItem('epi_transactions', JSON.stringify(allTransactions));
 
-            alert(`Stock Received saved successfully and synchronized across all system files!\nDate: ${formDate}\nTime (12h): ${time12Format}\nReceiver: ${receiver}\nIssued By: ${issuedBy}`);
+                alert(`Stock Received saved successfully to Firestore & synchronized!\nDate: ${formDate}\nTime (12h): ${time12Format}\nReceiver: ${receiver}\nIssued By: ${issuedBy}`);
 
-            document.getElementById('receivedForm').reset();
-            document.getElementById('formTime').value = "";
+                document.getElementById('receivedForm').reset();
+                document.getElementById('formTime').value = "";
+            } catch (error) {
+                console.error("Error adding document: ", error);
+                alert("Error saving stock to Firestore. Please check your network connection.");
+            }
         }
 
-        function downloadWordReport() {
+        window.downloadWordReport = async function() {
             let fromDate = document.getElementById('reportFromDate').value;
             let toDate = document.getElementById('reportToDate').value;
             let selectedReportItem = document.getElementById('reportSearchDropdown').value;
@@ -1064,17 +1088,28 @@
                 return;
             }
 
-            let allTransactions = JSON.parse(localStorage.getItem('epi_transactions')) || [];
-            let filteredRecords = allTransactions.filter(record => {
-                return record.type === 'RECEIVE' && record.date >= fromDate && record.date <= toDate;
-            });
+            let filteredRecords = [];
+            try {
+                const querySnapshot = await getDocs(collection(db, "epi_transactions"));
+                querySnapshot.forEach((doc) => {
+                    let record = doc.data();
+                    if (record.type === 'RECEIVE' && record.date >= fromDate && record.date <= toDate) {
+                        filteredRecords.push(record);
+                    }
+                });
+            } catch (e) {
+                console.error("Firestore fetch error, falling back to localStorage", e);
+                let allTransactions = JSON.parse(localStorage.getItem('epi_transactions')) || [];
+                filteredRecords = allTransactions.filter(record => {
+                    return record.type === 'RECEIVE' && record.date >= fromDate && record.date <= toDate;
+                });
+            }
 
             if(filteredRecords.length === 0) {
                 alert("No saved stock received records found within the selected date range (" + fromDate + " to " + toDate + ").");
                 return;
             }
 
-            // Extract unique or latest Receiver and Issuer names from filtered records to display at the top of the report
             let lastReceiver = filteredRecords[filteredRecords.length - 1].vaccinatorName || "-";
             let lastIssuedBy = filteredRecords[filteredRecords.length - 1].issuedBy || "-";
 
