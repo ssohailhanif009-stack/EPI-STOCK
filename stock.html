@@ -195,7 +195,6 @@
         const analytics = getAnalytics(app);
         const db = getFirestore(app);
 
-        // Map short/dropdown keys to display names used in database items array
         const itemNamesMap = {
             'v_bcg': 'BCG', 'v_opv': 'OPV', 'v_hepb': 'HEP-B', 'v_bcg_dil': 'BCG Diluent', 'v_penta': 'Pentavalent', 'v_penta10': 'Pentavalent-10 doses',
             'v_pcv13': 'PCV-13', 'v_rota': 'Rotavirus', 'v_ipv': 'IPV', 'v_mr': 'Measles-Rubella', 'v_mr_dil': 'MR-Diluent', 'v_mr05': 'Measles-Rubella 05 doses', 'v_mr05_dil': 'MR-Diluent 05 doses',
@@ -227,7 +226,7 @@
             balanceAlert.style.display = 'none';
 
             try {
-                // Fetching from 'epi__transactions' collection as seen in your firebase database
+                // Fetching from 'epi__transactions' collection
                 const querySnapshot = await getDocs(collection(db, "epi__transactions"));
                 
                 let transactions = [];
