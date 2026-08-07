@@ -297,8 +297,7 @@
 
         <div class="form-container">
             <div class="nav-links">
-                <a href="main.html">← Back to Main Menu</a> | 
-                <a href="issued.html">Issue Stock Form</a> | 
+                <a href="issued.html">← Issue Stock Form</a> | 
                 <a href="stock.html">View Master Stock Ledger →</a>
             </div>
             
@@ -957,7 +956,7 @@
     <!-- Firebase SDKs (Modular v10) -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, collection, addDoc, getDocs, query } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, getDocs, query, where } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
         import { firebaseConfig } from "./firebase.js";
 
         // Initialize Firebase
@@ -1082,21 +1081,19 @@
                 return;
             }
 
-            // Fetch records from Firebase Firestore (with fallback to LocalStorage if offline/error)
+            // Fetch records from Firebase Firestore
             let filteredRecords = [];
             try {
-                const querySnapshot = await getDocs(collection(db, "epi_transactions"));
+                const q = query(collection(db, "epi_transactions"), where("type", "==", "RECEIVE"));
+                const querySnapshot = await getDocs(q);
                 querySnapshot.forEach((doc) => {
                     let record = doc.data();
-                    if (record.type === 'RECEIVE' && record.date >= fromDate && record.date <= toDate) {
+                    if (record.date >= fromDate && record.date <= toDate) {
                         filteredRecords.push(record);
                     }
                 });
             } catch (error) {
                 console.error("Error fetching from Firebase, falling back to LocalStorage: ", error);
-            }
-
-            if(filteredRecords.length === 0) {
                 let allTransactions = JSON.parse(localStorage.getItem('epi_transactions')) || [];
                 filteredRecords = allTransactions.filter(record => {
                     return record.type === 'RECEIVE' && record.date >= fromDate && record.date <= toDate;
@@ -1224,7 +1221,7 @@
                     <table class="data-table">
                         <thead>
                             <tr>
-                                <th>Item Name, Doses & Expiry</th>
+                                <th>Item Name</th>
                                 <th>Total Quantity Received</th>
                                 <th>No. of Doses</th>
                                 <th>Company Name</th>
@@ -1239,7 +1236,7 @@
                 htmlContent += `
                     <tr>
                         <td colspan="5" style="text-align: center; color: #64748b; font-style: italic;">No matching items found for the selected report filters and date range.</td>
-                        </tr>
+                    </tr>
                 `;
             } else {
                 keys.forEach(key => {
