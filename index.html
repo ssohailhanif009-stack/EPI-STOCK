@@ -117,6 +117,21 @@
         </form>
     </div>
 
+    <!-- Firebase SDK (Modular) -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-app.js";
+        import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-analytics.js";
+        import { getFirestore } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js";
+        
+        // Import firebaseConfig from firebase.js
+        import { firebaseConfig } from "./firebase.js";
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const analytics = getAnalytics(app);
+        const db = getFirestore(app);
+    </script>
+
     <script>
         function validateCnic(event) {
             const enteredValue = document.getElementById('cnic').value.trim();
