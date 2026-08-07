@@ -4,31 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Stock Received - EPI Management System - Civil Hospital Naushahro Feroze</title>
-    
-    <!-- Firebase SDKs -->
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-app.js";
-        import { getFirestore, collection, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js";
-
-        const firebaseConfig = {
-            apiKey: "AIzaSyDkGYva8XEryBevjHBJm3VSDRwjnOrb3kc",
-            authDomain: "epi-stock-c7945.firebaseapp.com",
-            projectId: "epi-stock-c7945",
-            storageBucket: "epi-stock-c7945.firebasestorage.app",
-            messagingSenderId: "966405212084",
-            appId: "1:966405212084:web:b523f41e8c011e409054e1",
-            measurementId: "G-L4QNDF2Z31"
-        };
-
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
-
-        window.db = db;
-        window.collection = collection;
-        window.addDoc = addDoc;
-        window.getDocs = getDocs;
-    </script>
-
     <style>
         * {
             box-sizing: border-box;
@@ -978,7 +953,16 @@
         </div>
     </div>
 
-    <script>
+    <!-- Firebase SDKs (Modular v10) -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, collection, addDoc, getDocs, query, where } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { firebaseConfig } from "./firebase.js";
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
         const mappingKeys = {
             'OPV': 'v_opv', 'HEP-B': 'v_hepb', 'BCG': 'v_bcg', 'BCG Diluent': 'v_bcg_dil', 'Pentavalent': 'v_penta', 'Pentavalent-10 doses': 'v_penta10',
             'PCV-13': 'v_pcv13', 'Rotavirus': 'v_rota', 'IPV': 'v_ipv', 'Measles-Rubella': 'v_mr', 'MR-Diluent': 'v_mr_dil', 'Measles-Rubella 05 doses': 'v_mr05', 'MR-Diluent 05 doses': 'v_mr05_dil',
@@ -997,13 +981,13 @@
             'EPI Monthly Report': 'r_monthlyrep', 'AEFI Book': 'r_aefibook', 'Zero Weekly Surveillance Book': 'r_zerobook', 'VPD Weekly Reporting Book': 'r_vpdbook'
         };
 
-        function resetField(fieldId) {
+        window.resetField = function(fieldId) {
             let field = document.getElementById(fieldId);
             field.value = "";
             field.type = "text";
         }
 
-        async function handleFormSubmit(event) {
+        window.handleFormSubmit = async function(event) {
             event.preventDefault();
 
             let now = new Date();
@@ -1065,25 +1049,28 @@
                 vaccinatorName: receiver,
                 issuedBy: issuedBy,
                 items: itemsData,
-                detailedItems: detailedItems,
-                timestamp: new Date()
+                detailedItems: detailedItems
             };
 
-            try {
-                // Save data to Firebase Firestore
-                await window.addDoc(window.collection(window.db, "epi_transactions"), record);
-                
-                alert(`Stock Received saved to Firebase successfully!\nDate: ${formDate}\nTime (12h): ${time12Format}\nReceiver: ${receiver}\nIssued By: ${issuedBy}`);
+            // Save to LocalStorage for offline fallback / compatibility
+            let allTransactions = JSON.parse(localStorage.getItem('epi_transactions')) || [];
+            allTransactions.push(record);
+            localStorage.setItem('epi_transactions', JSON.stringify(allTransactions));
 
-                document.getElementById('receivedForm').reset();
-                document.getElementById('formTime').value = "";
-            } catch (e) {
-                console.error("Error adding document: ", e);
-                alert("Error saving to Firebase: " + e.message);
+            // Save to Firebase Firestore
+            try {
+                await addDoc(collection(db, "epi_transactions"), record);
+                alert(`Stock Received saved successfully to Firebase and synchronized across all system files!\nDate: ${formDate}\nTime (12h): ${time12Format}\nReceiver: ${receiver}\nIssued By: ${issuedBy}`);
+            } catch (error) {
+                console.error("Error adding document to Firebase: ", error);
+                alert("Stock saved locally, but there was an error syncing with Firebase. Check console for details.");
             }
+
+            document.getElementById('receivedForm').reset();
+            document.getElementById('formTime').value = "";
         }
 
-        async function downloadWordReport() {
+        window.downloadWordReport = async function() {
             let fromDate = document.getElementById('reportFromDate').value;
             let toDate = document.getElementById('reportToDate').value;
             let selectedReportItem = document.getElementById('reportSearchDropdown').value;
@@ -1094,21 +1081,24 @@
                 return;
             }
 
-            let allTransactions = [];
+            // Fetch records from Firebase Firestore
+            let filteredRecords = [];
             try {
-                const querySnapshot = await window.getDocs(window.collection(window.db, "epi_transactions"));
+                const q = query(collection(db, "epi_transactions"), where("type", "==", "RECEIVE"));
+                const querySnapshot = await getDocs(q);
                 querySnapshot.forEach((doc) => {
-                    allTransactions.push(doc.data());
+                    let record = doc.data();
+                    if (record.date >= fromDate && record.date <= toDate) {
+                        filteredRecords.push(record);
+                    }
                 });
-            } catch (e) {
-                console.error("Error fetching data: ", e);
-                alert("Error fetching data from Firebase.");
-                return;
+            } catch (error) {
+                console.error("Error fetching from Firebase, falling back to LocalStorage: ", error);
+                let allTransactions = JSON.parse(localStorage.getItem('epi_transactions')) || [];
+                filteredRecords = allTransactions.filter(record => {
+                    return record.type === 'RECEIVE' && record.date >= fromDate && record.date <= toDate;
+                });
             }
-
-            let filteredRecords = allTransactions.filter(record => {
-                return record.type === 'RECEIVE' && record.date >= fromDate && record.date <= toDate;
-            });
 
             if(filteredRecords.length === 0) {
                 alert("No saved stock received records found within the selected date range (" + fromDate + " to " + toDate + ").");
