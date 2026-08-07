@@ -282,7 +282,7 @@
         const db = getFirestore(app);
 
         const itemNamesMap = {
-            'v_opv': 'OPV', 'v_hepb': 'HEP-B', 'v_bcg': 'BCG', 'v_bcg_dil': 'BCG Diluent', 'v_penta': 'Pentavalent', 'v_penta10': 'Pentavalent-10 doses',
+            'v_bcg': 'BCG', 'v_opv': 'OPV', 'v_hepb': 'HEP-B', 'v_bcg_dil': 'BCG Diluent', 'v_penta': 'Pentavalent', 'v_penta10': 'Pentavalent-10 doses',
             'v_pcv13': 'PCV-13', 'v_rota': 'Rotavirus', 'v_ipv': 'IPV', 'v_mr': 'Measles-Rubella', 'v_mr_dil': 'MR-Diluent', 'v_mr05': 'Measles-Rubella 05 doses', 'v_mr05_dil': 'MR-Diluent 05 doses',
             'v_tcv': 'TCV', 'v_td': 'TD', 'v_hpv': 'HPV', 'v_panadol': 'Panadol-Drops',
             'l_005s': '0.05 ml Syringes', 'l_05s': '0.5 ml Syringes', 'l_2s': '2 ml Syringes', 'l_5s': '5 ml Syringes', 'l_safety': 'Safety Box',
@@ -312,7 +312,8 @@
             grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: #64748b; padding: 20px;">Loading balances from Firebase...</div>';
 
             try {
-                const querySnapshot = await getDocs(collection(db, "transactions"));
+                // Fetching from 'epi__transactions' collection
+                const querySnapshot = await getDocs(collection(db, "epi__transactions"));
                 
                 let transactions = [];
                 querySnapshot.forEach((doc) => {
@@ -326,11 +327,17 @@
                     let issued = 0;
 
                     transactions.forEach(tx => {
-                        const qty = (tx.items && tx.items[key]) ? Number(tx.items[key]) : 0;
-                        if (tx.type === 'RECEIVE') {
-                            received += qty;
-                        } else if (tx.type === 'ISSUE') {
-                            issued += qty;
+                        if (tx.detailedItems && Array.isArray(tx.detailedItems)) {
+                            tx.detailedItems.forEach(item => {
+                                if (item.name === name) {
+                                    const qty = Number(item.qty) || 0;
+                                    if (tx.type === 'RECEIVE') {
+                                        received += qty;
+                                    } else if (tx.type === 'ISSUE') {
+                                        issued += qty;
+                                    }
+                                }
+                            });
                         }
                     });
 
@@ -426,7 +433,7 @@
 
             <div class="footer-flex">
                 <span>Civil Hospital Naushahro Feroze &copy; 2026 - EPI Inventory Headquarters[cite: 3]</span>
-                <span>Developed by: <b>Aaqib Hanif Rajput</b>[cite: 3]</span>
+                <span>Developed by: <b>Aqib Hanif Rajput</b>[cite: 3]</span>
             </div>
         </div>
     </div>
