@@ -6,6 +6,44 @@
     <title>EPI Stock Issue Form - Civil Hospital Naushahro Feroze</title>
     <!-- Include jsPDF library for professional PDF generation -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    
+    <!-- Firebase SDK Imports -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-app.js";
+        import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-analytics.js";
+        import { getFirestore, collection, addDoc, getDocs, query, where } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyChMj0SRQlA0MrsDGJHr8BNbxSKXuFAYPo",
+            authDomain: "epi-stock-39e88.firebaseapp.com",
+            projectId: "epi-stock-39e88",
+            storageBucket: "epi-stock-39e88.firebasestorage.app",
+            messagingSenderId: "893702330698",
+            appId: "1:893702330698:web:8f2adf7b9d541bb9d909b3",
+            measurementId: "G-ECDS1BK0Y6"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const analytics = getAnalytics(app);
+        const db = getFirestore(app);
+
+        // Global export for use in script functions
+        window.db = db;
+        window.collection = collection;
+        window.addDoc = addDoc;
+        window.getDocs = getDocs;
+        window.query = query;
+        window.where = where;
+
+        // Run stock check after Firebase is initialized
+        window.addEventListener('DOMContentLoaded', () => {
+            if (typeof checkStockBalances === 'function') {
+                checkStockBalances();
+            }
+        });
+    </script>
+
     <style>
         * {
             box-sizing: border-box;
@@ -133,7 +171,6 @@
             border-color: var(--primary-color);
             box-shadow: 0 0 5px rgba(15, 76, 92, 0.3);
         }
-        /* Nil Stock Styling */
         input.stock-nil {
             border: 2px solid var(--danger-color) !important;
             background-color: #fef2f2 !important;
@@ -417,76 +454,86 @@
         'r_monthlyrep': 'EPI Monthly Report', 'r_aefibook': 'AEFI Book', 'r_zerobook': 'Zero Weekly Surveillance Book', 'r_vpdbook': 'VPD Weekly Reporting Book'
     };
 
-    function checkStockBalances() {
-        const transactions = JSON.parse(localStorage.getItem('epi_transactions')) || [];
-        let balances = {};
-        Object.keys(itemDetails).forEach(key => { balances[key] = 0; });
+    async function checkStockBalances() {
+        if (!window.db) return;
+        try {
+            const querySnapshot = await window.getDocs(window.collection(window.db, "epi_transactions"));
+            let balances = {};
+            Object.keys(itemDetails).forEach(key => { balances[key] = 0; });
 
-        transactions.forEach(tx => {
-            if (tx.items) {
-                Object.keys(tx.items).forEach(key => {
-                    if (balances[key] !== undefined) {
-                        const val = Number(tx.items[key]) || 0;
-                        if (tx.type === 'RECEIVE') balances[key] += val;
-                        else if (tx.type === 'ISSUE') balances[key] -= val;
+            querySnapshot.forEach((doc) => {
+                const tx = doc.data();
+                if (tx.items) {
+                    Object.keys(tx.items).forEach(key => {
+                        if (balances[key] !== undefined) {
+                            const val = Number(tx.items[key]) || 0;
+                            if (tx.type === 'RECEIVE') balances[key] += val;
+                            else if (tx.type === 'ISSUE') balances[key] -= val;
+                        }
+                    });
+                }
+            });
+
+            Object.keys(itemDetails).forEach(key => {
+                const inputField = document.getElementById(key);
+                const warningSpan = document.getElementById('warn_' + key);
+                if (!inputField) return;
+                const currentBal = balances[key];
+
+                if (currentBal <= 0) {
+                    inputField.value = 0;
+                    inputField.classList.add('stock-nil');
+                    inputField.setAttribute('disabled', 'true');
+                    if (warningSpan) {
+                        warningSpan.innerText = `Stock Nil (${currentBal})`;
+                        warningSpan.style.display = 'block';
                     }
-                });
-            }
-        });
-
-        Object.keys(itemDetails).forEach(key => {
-            const inputField = document.getElementById(key);
-            const warningSpan = document.getElementById('warn_' + key);
-            if (!inputField) return;
-            const currentBal = balances[key];
-
-            if (currentBal <= 0) {
-                inputField.value = 0;
-                inputField.classList.add('stock-nil');
-                inputField.setAttribute('disabled', 'true');
-                if (warningSpan) {
-                    warningSpan.innerText = `Stock Nil (${currentBal})`;
-                    warningSpan.style.display = 'block';
+                } else {
+                    inputField.classList.remove('stock-nil');
+                    inputField.removeAttribute('disabled');
+                    if (warningSpan) {
+                        warningSpan.style.display = 'none';
+                    }
                 }
-            } else {
-                inputField.classList.remove('stock-nil');
-                inputField.removeAttribute('disabled');
-                if (warningSpan) {
-                    warningSpan.style.display = 'none';
-                }
-            }
-        });
+            });
+        } catch (error) {
+            console.error("Error fetching stock balances: ", error);
+        }
     }
 
     window.onload = function() {
-        checkStockBalances();
         document.getElementById('searchDate').addEventListener('change', updateVoucherDropdown);
     };
 
-    function updateVoucherDropdown() {
+    async function updateVoucherDropdown() {
         const selectedDate = document.getElementById('searchDate').value;
         const selectDropdown = document.getElementById('searchVoucherSelect');
         selectDropdown.innerHTML = '<option value="">-- Select Voucher --</option>';
 
-        if (!selectedDate) return;
+        if (!selectedDate || !window.db) return;
 
-        const allTransactions = JSON.parse(localStorage.getItem('epi_transactions')) || [];
-        const filtered = allTransactions.filter(tx => tx.type === 'ISSUE' && tx.date === selectedDate);
+        try {
+            const q = window.query(window.collection(window.db, "epi_transactions"), window.where("type", "==", "ISSUE"), window.where("date", "==", selectedDate));
+            const querySnapshot = await window.getDocs(q);
 
-        if (filtered.length === 0) {
-            selectDropdown.innerHTML = '<option value="">No vouchers found for this date</option>';
-            return;
+            if (querySnapshot.empty) {
+                selectDropdown.innerHTML = '<option value="">No vouchers found for this date</option>';
+                return;
+            }
+
+            querySnapshot.forEach((docSnap) => {
+                const tx = docSnap.data();
+                const opt = document.createElement('option');
+                opt.value = docSnap.id; // Firestore doc ID
+                opt.textContent = `${tx.vaccinatorName} (${tx.epiCenter}) - ${tx.time}`;
+                selectDropdown.appendChild(opt);
+            });
+        } catch (error) {
+            console.error("Error fetching vouchers: ", error);
         }
-
-        filtered.forEach(tx => {
-            const opt = document.createElement('option');
-            opt.value = tx.id;
-            opt.textContent = `${tx.vaccinatorName} (${tx.epiCenter}) - ${tx.time}`;
-            selectDropdown.appendChild(opt);
-        });
     }
 
-    function saveIssueRecord(event) {
+    async function saveIssueRecord(event) {
         event.preventDefault();
 
         let now = new Date();
@@ -532,37 +579,51 @@
             items: itemsData
         };
 
-        let allTransactions = JSON.parse(localStorage.getItem('epi_transactions')) || [];
-        allTransactions.push(record);
-        localStorage.setItem('epi_transactions', JSON.stringify(allTransactions));
-
-        alert('Record Saved Successfully!');
-        checkStockBalances();
+        try {
+            await window.addDoc(window.collection(window.db, "epi_transactions"), record);
+            alert('Record Saved Successfully to Firebase!');
+            checkStockBalances();
+            document.getElementById('issueForm').reset();
+            document.getElementById('district').value = "Naushahro Feroze";
+            document.getElementById('taluka').value = "Naushahro Feroze";
+        } catch (e) {
+            console.error("Error adding document: ", e);
+            alert('Error saving record to Firebase.');
+        }
     }
 
-    function downloadVoucherBySearch() {
+    async function downloadVoucherBySearch() {
         const selectedId = document.getElementById('searchVoucherSelect').value;
         if (!selectedId) {
             alert('Please select a valid voucher from the dropdown list.');
             return;
         }
 
-        const allTransactions = JSON.parse(localStorage.getItem('epi_transactions')) || [];
-        const record = allTransactions.find(tx => tx.id == selectedId);
+        try {
+            const querySnapshot = await window.getDocs(window.collection(window.db, "epi_transactions"));
+            let record = null;
+            querySnapshot.forEach((docSnap) => {
+                if (docSnap.id === selectedId) {
+                    record = docSnap.data();
+                }
+            });
 
-        if (!record) {
-            alert('Record not found!');
-            return;
-        }
-
-        let issuedSummary = [];
-        Object.keys(record.items).forEach(key => {
-            if (record.items[key] > 0 && itemDetails[key]) {
-                issuedSummary.push({ name: itemDetails[key], qty: record.items[key] });
+            if (!record) {
+                alert('Record not found!');
+                return;
             }
-        });
 
-        generatePDF(record, issuedSummary);
+            let issuedSummary = [];
+            Object.keys(record.items).forEach(key => {
+                if (record.items[key] > 0 && itemDetails[key]) {
+                    issuedSummary.push({ name: itemDetails[key], qty: record.items[key] });
+                }
+            });
+
+            generatePDF(record, issuedSummary);
+        } catch (error) {
+            console.error("Error fetching voucher for download: ", error);
+        }
     }
 
     function generatePDF(record, issuedSummary) {
