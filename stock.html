@@ -213,6 +213,18 @@
             'r_monthlyrep': 'EPI Monthly Report', 'r_aefibook': 'AEFI Book', 'r_zerobook': 'Zero Weekly Surveillance Book', 'r_vpdbook': 'VPD Weekly Reporting Book'
         };
 
+        function isItemMatch(dbItemName, selectedKey, targetName) {
+            if (!dbItemName) return false;
+            const cleanDb = String(dbItemName).trim().toLowerCase();
+            const cleanKey = String(selectedKey).trim().toLowerCase();
+            const cleanTarget = String(targetName).trim().toLowerCase();
+
+            return cleanDb === cleanKey || 
+                   cleanDb === cleanTarget || 
+                   cleanDb.includes(cleanKey) || 
+                   cleanDb.includes(cleanTarget);
+        }
+
         async function loadLedger() {
             const selectedItemKey = document.getElementById('filterItem').value;
             const targetItemName = itemNamesMap[selectedItemKey] || selectedItemKey;
@@ -226,7 +238,6 @@
             balanceAlert.style.display = 'none';
 
             try {
-                // Fixed collection name matching database setup (epi_transactions)
                 const querySnapshot = await getDocs(collection(db, "epi_transactions"));
                 
                 let transactions = [];
@@ -234,7 +245,9 @@
                     transactions.push(doc.data());
                 });
 
-                // Sort transactions by date if available
+                console.log("Total Transactions fetched from Firebase:", transactions.length);
+
+                // Sort transactions by date
                 transactions.sort((a, b) => {
                     let dateA = a.date || '';
                     let dateB = b.date || '';
@@ -246,12 +259,11 @@
                 let totalReceived = 0;
                 let totalIssued = 0;
 
-                // First pass: Calculate totals for the selected item name across detailedItems array
+                // First pass: Calculate totals
                 transactions.forEach(tx => {
                     if (tx.detailedItems && Array.isArray(tx.detailedItems)) {
                         tx.detailedItems.forEach(item => {
-                            // Check both mapped name and direct key/name match
-                            if (item.name === targetItemName || item.name === selectedItemKey) {
+                            if (isItemMatch(item.name, selectedItemKey, targetItemName)) {
                                 const qty = Number(item.qty) || 0;
                                 if (tx.type === 'RECEIVE') totalReceived += qty;
                                 else if (tx.type === 'ISSUE') totalIssued += qty;
@@ -268,12 +280,12 @@
                 let runningBalance = 0;
                 let rowCount = 0;
 
-                // Second pass: Render transaction rows matching filters
+                // Second pass: Render rows
                 transactions.forEach(tx => {
                     if (!tx.detailedItems || !Array.isArray(tx.detailedItems)) return;
 
                     tx.detailedItems.forEach(item => {
-                        if (item.name !== targetItemName && item.name !== selectedItemKey) return;
+                        if (!isItemMatch(item.name, selectedItemKey, targetItemName)) return;
 
                         const qty = Number(item.qty) || 0;
                         if (qty <= 0) return;
@@ -284,7 +296,7 @@
                             runningBalance -= qty;
                         }
 
-                        // Apply filters for display
+                        // Apply filters
                         if (filterCenter && tx.type === 'ISSUE' && tx.epiCenter !== filterCenter) return;
                         if (fromDate && tx.date < fromDate) return;
                         if (toDate && tx.date > toDate) return;
@@ -304,7 +316,7 @@
                 });
 
                 if (rowCount === 0) {
-                    tbody.innerHTML = `<tr><td colspan="6" style="padding: 20px; color: #777;">No records found matching the selected criteria.</td></tr>`;
+                    tbody.innerHTML = `<tr><td colspan="6" style="padding: 20px; color: #777;">No records found matching the selected criteria. (Check browser F12 Console for database logs)</td></tr>`;
                 }
 
             } catch (error) {
@@ -501,7 +513,7 @@
     <div id="balanceAlert" class="balance-display"></div>
 
     <!-- Master Line List Table -->
-    <div style="overflow-x: auto;">
+    <div style="overflow-x. auto;">
         <table id="ledgerTable">
             <thead>
                 <tr>
