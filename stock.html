@@ -226,8 +226,8 @@
             balanceAlert.style.display = 'none';
 
             try {
-                // Correct collection name matching database setup
-                const querySnapshot = await getDocs(collection(db, "epi__transactions"));
+                // Fixed collection name matching database setup (epi_transactions)
+                const querySnapshot = await getDocs(collection(db, "epi_transactions"));
                 
                 let transactions = [];
                 querySnapshot.forEach((doc) => {
@@ -250,7 +250,8 @@
                 transactions.forEach(tx => {
                     if (tx.detailedItems && Array.isArray(tx.detailedItems)) {
                         tx.detailedItems.forEach(item => {
-                            if (item.name === targetItemName) {
+                            // Check both mapped name and direct key/name match
+                            if (item.name === targetItemName || item.name === selectedItemKey) {
                                 const qty = Number(item.qty) || 0;
                                 if (tx.type === 'RECEIVE') totalReceived += qty;
                                 else if (tx.type === 'ISSUE') totalIssued += qty;
@@ -272,7 +273,7 @@
                     if (!tx.detailedItems || !Array.isArray(tx.detailedItems)) return;
 
                     tx.detailedItems.forEach(item => {
-                        if (item.name !== targetItemName) return;
+                        if (item.name !== targetItemName && item.name !== selectedItemKey) return;
 
                         const qty = Number(item.qty) || 0;
                         if (qty <= 0) return;
