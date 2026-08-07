@@ -174,6 +174,175 @@
             text-decoration: underline;
         }
     </style>
+
+    <!-- Firebase SDK Imports (Modular v11 / compatible with 12.x) -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-app.js";
+        import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-analytics.js";
+        import { getFirestore, collection, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyChMj0SRQlA0MrsDGJHr8BNbxSKXuFAYPo",
+            authDomain: "epi-stock-39e88.firebaseapp.com",
+            projectId: "epi-stock-39e88",
+            storageBucket: "epi-stock-39e88.firebasestorage.app",
+            messagingSenderId: "893702330698",
+            appId: "1:893702330698:web:8f2adf7b9d541bb9d909b3",
+            measurementId: "G-ECDS1BK0Y6"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const analytics = getAnalytics(app);
+        const db = getFirestore(app);
+
+        // Global items map
+        const itemNamesMap = {
+            'v_opv': 'OPV', 'v_hepb': 'HEP-B', 'v_bcg': 'BCG', 'v_bcg_dil': 'BCG Diluent', 'v_penta': 'Pentavalent', 'v_penta10': 'Pentavalent-10 doses',
+            'v_pcv13': 'PCV-13', 'v_rota': 'Rotavirus', 'v_ipv': 'IPV', 'v_mr': 'Measles-Rubella', 'v_mr_dil': 'MR-Diluent', 'v_mr05': 'Measles-Rubella 05 doses', 'v_mr05_dil': 'MR-Diluent 05 doses',
+            'v_tcv': 'TCV', 'v_td': 'TD', 'v_hpv': 'HPV', 'v_panadol': 'Panadol-Drops',
+            'l_005s': '0.05 ml Syringes', 'l_05s': '0.5 ml Syringes', 'l_2s': '2 ml Syringes', 'l_5s': '5 ml Syringes', 'l_safety': 'Safety Box',
+            'l_droppers': 'Droppers', 'l_vac_carrier': 'Vaccine Carrier', 'l_card': 'Vaccination Card', 'l_qrcode': 'QR-Code', 'l_fridgetag': 'Fridge-Tag 2 Device',
+            'camp_nid': 'NID/ Oral Polio Vaccine', 'camp_hpv': 'HPV (Campaign)', 'camp_mr': 'Measles-Rubella (Campaign)', 'camp_mrdil': 'MR-Diluent (Campaign)', 'camp_tcv': 'TCV (Campaign)',
+            'camp_markers': 'Finger Markers', 'camp_scissor': 'Scissor', 'camp_mobtally': 'Mobile Tally Sheet', 'camp_romtally': 'Roming Tally Sheet',
+            'camp_fixtally': 'Fixed Tally Sheet', 'camp_ucmo': 'UCMO Form', 'camp_areainc': 'Area Incharge Form', 'camp_zerodose': 'Zero Dose Form',
+            'camp_aefi': 'AEFI Form', 'camp_repform': 'Reporting Form', 'camp_redcap': 'Red Capsule (Vitamin-A)', 'camp_bluecap': 'Blue Capsule (Vitamin-A)',
+            'camp_ziplocker': 'Zip Locker', 'camp_cap': 'Cap', 'camp_jackets': 'Jackets', 'camp_senitizer': 'Senitizer', 'camp_rotcarrier': 'Rotary Vaccine Carrier',
+            'camp_dustbin': 'Dustbin',
+            'r_daily': 'Daily Vaccination Register', 'r_child': 'Permenant Child Register', 'r_women': 'Permenant Women Register',
+            'r_hpvreg': 'HPV Permenant Register', 'r_reqbook': 'Vaccine Consumption Book', 'r_stockbook': 'Stock Book',
+            'r_tally': 'EPI Tally Sheet', 'r_temp': 'Temprature Sheet', 'r_monitor': 'Monitoring Chart',
+            'r_monthlyrep': 'EPI Monthly Report', 'r_aefibook': 'AEFI Book', 'r_zerobook': 'Zero Weekly Surveillance Book', 'r_vpdbook': 'VPD Weekly Reporting Book'
+        };
+
+        async function loadLedger() {
+            const selectedItem = document.getElementById('filterItem').value;
+            const filterCenter = document.getElementById('filterCenter').value;
+            const fromDate = document.getElementById('filterFromDate').value;
+            const toDate = document.getElementById('filterToDate').value;
+
+            const tbody = document.getElementById('ledgerTableBody');
+            const balanceAlert = document.getElementById('balanceAlert');
+            tbody.innerHTML = `<tr><td colspan="6" style="padding: 20px; color: #777;">Loading data from Firebase...</td></tr>`;
+            balanceAlert.style.display = 'none';
+
+            try {
+                // Firestore collection reference (assuming collection name is 'transactions')
+                const q = query(collection(db, "transactions"), orderBy("id", "asc"));
+                const querySnapshot = await getDocs(q);
+                
+                let transactions = [];
+                querySnapshot.forEach((doc) => {
+                    transactions.push(doc.data());
+                });
+
+                tbody.innerHTML = '';
+
+                let totalReceived = 0;
+                let totalIssued = 0;
+
+                transactions.forEach(tx => {
+                    const qty = (tx.items && tx.items[selectedItem]) ? Number(tx.items[selectedItem]) : 0;
+                    if (tx.type === 'RECEIVE') totalReceived += qty;
+                    else if (tx.type === 'ISSUE') totalIssued += qty;
+                });
+
+                const currentBalance = totalReceived - totalIssued;
+
+                balanceAlert.style.display = 'block';
+                balanceAlert.innerText = 'Current Available Stock Balance: ' + currentBalance;
+
+                let runningBalance = 0;
+
+                transactions.forEach(tx => {
+                    const qty = (tx.items && tx.items[selectedItem]) ? Number(tx.items[selectedItem]) : 0;
+                    if (qty <= 0) return;
+
+                    if (tx.type === 'RECEIVE') {
+                        runningBalance += qty;
+                    } else if (tx.type === 'ISSUE') {
+                        runningBalance -= qty;
+                    }
+
+                    // Apply filters for display
+                    if (filterCenter && tx.type === 'ISSUE' && tx.epiCenter !== filterCenter) return;
+                    if (fromDate && tx.date < fromDate) return;
+                    if (toDate && tx.date > toDate) return;
+
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td>${tx.dateTime || (tx.date + ' ' + (tx.time || ''))}</td>
+                        <td><b>${tx.type === 'RECEIVE' ? 'Stock Received' : (tx.vaccinatorName || '-')}</b></td>
+                        <td>${tx.type === 'RECEIVE' ? 'Main Store / HQ' : (tx.epiCenter || '-')}</td>
+                        <td><b style="color: ${tx.type === 'RECEIVE' ? '#2e7d32' : 'inherit'};">${tx.type === 'RECEIVE' ? qty : '-'}</b></td>
+                        <td><b style="color: ${tx.type === 'ISSUE' ? '#c62828' : 'inherit'};">${tx.type === 'ISSUE' ? qty : '-'}</b></td>
+                        <td style="background-color: #f1f5f9; font-weight: bold; color: ${runningBalance < 0 ? 'red' : '#0f4c5c'}">${runningBalance}</td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+
+                if (tbody.children.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="6" style="padding: 20px; color: #777;">No records found matching the selected criteria.</td></tr>`;
+                }
+
+            } catch (error) {
+                console.error("Error fetching data from Firebase: ", error);
+                tbody.innerHTML = `<tr><td colspan="6" style="padding: 20px; color: red;">Error loading data from Firebase. Check console for details.</td></tr>`;
+            }
+        }
+
+        function filterTable() {
+            loadLedger();
+        }
+
+        function resetFilters() {
+            document.getElementById('filterFromDate').value = '';
+            document.getElementById('filterToDate').value = '';
+            document.getElementById('filterCenter').value = '';
+            document.getElementById('filterItem').value = 'v_bcg';
+            loadLedger();
+        }
+
+        function downloadPDF() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+
+            const selectedItemKey = document.getElementById('filterItem').value;
+            const itemName = itemNamesMap[selectedItemKey] || selectedItemKey;
+            const filterCenter = document.getElementById('filterCenter').value || 'All Centers';
+
+            doc.setFillColor(15, 76, 92);
+            doc.rect(0, 0, 210, 25, "F");
+            
+            doc.setTextColor(255, 255, 255);
+            doc.setFont("helvetica", "bold");
+            doc.setFontSize(12);
+            doc.text("EXPANDED PROGRAM ON IMMUNIZATION VACCINE STOCK BOOK RECORD", 105, 9, { align: "center" });
+            doc.setFontSize(9);
+            doc.text("District & Taluka Naushahro Feroze", 105, 14, { align: "center" });
+            doc.text(`Item: ${itemName} (${filterCenter})`, 105, 20, { align: "center" });
+
+            doc.autoTable({
+                html: '#ledgerTable',
+                startY: 32,
+                theme: 'grid',
+                headStyles: { fillColor: [15, 76, 92] },
+                styles: { fontSize: 9, cellPadding: 4 }
+            });
+
+            doc.save(`EPI_Stock_Book_${itemName}.pdf`);
+        }
+
+        // Expose functions globally to be accessible from HTML event attributes
+        window.filterTable = filterTable;
+        window.resetFilters = resetFilters;
+        window.downloadPDF = downloadPDF;
+
+        // Load ledger when window loads
+        window.onload = () => {
+            loadLedger();
+        };
+    </script>
 </head>
 <body>
 
@@ -330,131 +499,6 @@
         </table>
     </div>
 </div>
-
-<script>
-    const itemNamesMap = {
-        'v_opv': 'OPV', 'v_hepb': 'HEP-B', 'v_bcg': 'BCG', 'v_bcg_dil': 'BCG Diluent', 'v_penta': 'Pentavalent', 'v_penta10': 'Pentavalent-10 doses',
-        'v_pcv13': 'PCV-13', 'v_rota': 'Rotavirus', 'v_ipv': 'IPV', 'v_mr': 'Measles-Rubella', 'v_mr_dil': 'MR-Diluent', 'v_mr05': 'Measles-Rubella 05 doses', 'v_mr05_dil': 'MR-Diluent 05 doses',
-        'v_tcv': 'TCV', 'v_td': 'TD', 'v_hpv': 'HPV', 'v_panadol': 'Panadol-Drops',
-        'l_005s': '0.05 ml Syringes', 'l_05s': '0.5 ml Syringes', 'l_2s': '2 ml Syringes', 'l_5s': '5 ml Syringes', 'l_safety': 'Safety Box',
-        'l_droppers': 'Droppers', 'l_vac_carrier': 'Vaccine Carrier', 'l_card': 'Vaccination Card', 'l_qrcode': 'QR-Code', 'l_fridgetag': 'Fridge-Tag 2 Device',
-        'camp_nid': 'NID/ Oral Polio Vaccine', 'camp_hpv': 'HPV (Campaign)', 'camp_mr': 'Measles-Rubella (Campaign)', 'camp_mrdil': 'MR-Diluent (Campaign)', 'camp_tcv': 'TCV (Campaign)',
-        'camp_markers': 'Finger Markers', 'camp_scissor': 'Scissor', 'camp_mobtally': 'Mobile Tally Sheet', 'camp_romtally': 'Roming Tally Sheet',
-        'camp_fixtally': 'Fixed Tally Sheet', 'camp_ucmo': 'UCMO Form', 'camp_areainc': 'Area Incharge Form', 'camp_zerodose': 'Zero Dose Form',
-        'camp_aefi': 'AEFI Form', 'camp_repform': 'Reporting Form', 'camp_redcap': 'Red Capsule (Vitamin-A)', 'camp_bluecap': 'Blue Capsule (Vitamin-A)',
-        'camp_ziplocker': 'Zip Locker', 'camp_cap': 'Cap', 'camp_jackets': 'Jackets', 'camp_senitizer': 'Senitizer', 'camp_rotcarrier': 'Rotary Vaccine Carrier',
-        'camp_dustbin': 'Dustbin',
-        'r_daily': 'Daily Vaccination Register', 'r_child': 'Permenant Child Register', 'r_women': 'Permenant Women Register',
-        'r_hpvreg': 'HPV Permenant Register', 'r_reqbook': 'Vaccine Consumption Book', 'r_stockbook': 'Stock Book',
-        'r_tally': 'EPI Tally Sheet', 'r_temp': 'Temprature Sheet', 'r_monitor': 'Monitoring Chart',
-        'r_monthlyrep': 'EPI Monthly Report', 'r_aefibook': 'AEFI Book', 'r_zerobook': 'Zero Weekly Surveillance Book', 'r_vpdbook': 'VPD Weekly Reporting Book'
-    };
-
-    function loadLedger() {
-        const transactions = JSON.parse(localStorage.getItem('epi_transactions')) || [];
-        const selectedItem = document.getElementById('filterItem').value;
-        const filterCenter = document.getElementById('filterCenter').value;
-        const fromDate = document.getElementById('filterFromDate').value;
-        const toDate = document.getElementById('filterToDate').value;
-
-        const tbody = document.getElementById('ledgerTableBody');
-        const balanceAlert = document.getElementById('balanceAlert');
-        tbody.innerHTML = '';
-        balanceAlert.style.display = 'none';
-
-        let totalReceived = 0;
-        let totalIssued = 0;
-
-        transactions.forEach(tx => {
-            const qty = (tx.items && tx.items[selectedItem]) ? Number(tx.items[selectedItem]) : 0;
-            if (tx.type === 'RECEIVE') totalReceived += qty;
-            else if (tx.type === 'ISSUE') totalIssued += qty;
-        });
-
-        const currentBalance = totalReceived - totalIssued;
-
-        balanceAlert.style.display = 'block';
-        balanceAlert.innerText = 'Current Available Stock Balance: ' + currentBalance;
-
-        let runningBalance = 0;
-        transactions.sort((a, b) => a.id - b.id);
-
-        transactions.forEach(tx => {
-            const qty = (tx.items && tx.items[selectedItem]) ? Number(tx.items[selectedItem]) : 0;
-            if (qty <= 0) return;
-
-            if (tx.type === 'RECEIVE') {
-                runningBalance += qty;
-            } else if (tx.type === 'ISSUE') {
-                runningBalance -= qty;
-            }
-
-            // Apply filters for display
-            if (filterCenter && tx.type === 'ISSUE' && tx.epiCenter !== filterCenter) return;
-            if (fromDate && tx.date < fromDate) return;
-            if (toDate && tx.date > toDate) return;
-
-            const tr = document.createElement('tr');
-            tr.innerHTML = `
-                <td>${tx.dateTime || (tx.date + ' ' + (tx.time || ''))}</td>
-                <td><b>${tx.type === 'RECEIVE' ? 'Stock Received' : (tx.vaccinatorName || '-')}</b></td>
-                <td>${tx.type === 'RECEIVE' ? 'Main Store / HQ' : (tx.epiCenter || '-')}</td>
-                <td><b style="color: ${tx.type === 'RECEIVE' ? '#2e7d32' : 'inherit'};">${tx.type === 'RECEIVE' ? qty : '-'}</b></td>
-                <td><b style="color: ${tx.type === 'ISSUE' ? '#c62828' : 'inherit'};">${tx.type === 'ISSUE' ? qty : '-'}</b></td>
-                <td style="background-color: #f1f5f9; font-weight: bold; color: ${runningBalance < 0 ? 'red' : '#0f4c5c'}">${runningBalance}</td>
-            `;
-            tbody.appendChild(tr);
-        });
-
-        if (tbody.children.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="6" style="padding: 20px; color: #777;">No records found matching the selected criteria.</td></tr>`;
-        }
-    }
-
-    function filterTable() {
-        loadLedger();
-    }
-
-    function resetFilters() {
-        document.getElementById('filterFromDate').value = '';
-        document.getElementById('filterToDate').value = '';
-        document.getElementById('filterCenter').value = '';
-        document.getElementById('filterItem').value = 'v_bcg';
-        loadLedger();
-    }
-
-    function downloadPDF() {
-        const { jsPDF } = window.jspdf;
-        const doc = new jsPDF();
-
-        const selectedItemKey = document.getElementById('filterItem').value;
-        const itemName = itemNamesMap[selectedItemKey] || selectedItemKey;
-        const filterCenter = document.getElementById('filterCenter').value || 'All Centers';
-
-        doc.setFillColor(15, 76, 92);
-        doc.rect(0, 0, 210, 25, "F");
-        
-        doc.setTextColor(255, 255, 255);
-        doc.setFont("helvetica", "bold");
-        doc.setFontSize(12);
-        doc.text("EXPANDED PROGRAM ON IMMUNIZATION VACCINE STOCK BOOK RECORD", 105, 9, { align: "center" });
-        doc.setFontSize(9);
-        doc.text("District & Taluka Naushahro Feroze", 105, 14, { align: "center" });
-        doc.text(`Item: ${itemName} (${filterCenter})`, 105, 20, { align: "center" });
-
-        doc.autoTable({
-            html: '#ledgerTable',
-            startY: 32,
-            theme: 'grid',
-            headStyles: { fillColor: [15, 76, 92] },
-            styles: { fontSize: 9, cellPadding: 4 }
-        });
-
-        doc.save(`EPI_Stock_Book_${itemName}.pdf`);
-    }
-
-    window.onload = loadLedger;
-</script>
 
 </body>
 </html>
