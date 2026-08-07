@@ -226,7 +226,7 @@
             balanceAlert.style.display = 'none';
 
             try {
-                // Fetching from 'epi__transactions' collection
+                // Correct collection name matching database setup
                 const querySnapshot = await getDocs(collection(db, "epi__transactions"));
                 
                 let transactions = [];
