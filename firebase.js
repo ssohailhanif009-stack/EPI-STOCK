@@ -1,6 +1,6 @@
 // firebase.js
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-app.js";
-import { getDatabase } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-database.js";
+import { getFirestore, collection, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyDkGYva8XEryBevjHBJm3VSDRwjnOrb3kc",
@@ -13,7 +13,6 @@ const firebaseConfig = {
 };
 
 const app = initializeApp(firebaseConfig);
-const db = getDatabase(app);
+const db = getFirestore(app);
 
-// In functions ko export karein taake baaki files mein use kar sakein
-export { db };
+export { db, collection, addDoc, getDocs };
