@@ -443,11 +443,15 @@
             snapshot.forEach(doc => {
                 const tx = doc.data();
                 if (tx.items) {
+                    const txType = (tx.type || '').toUpperCase();
                     Object.keys(tx.items).forEach(key => {
                         if (balances[key] !== undefined) {
                             const val = Number(tx.items[key]) || 0;
-                            if (tx.type === 'RECEIVE') balances[key] += val;
-                            else if (tx.type === 'ISSUE') balances[key] -= val;
+                            if (txType === 'RECEIVE') {
+                                balances[key] += val;
+                            } else if (txType === 'ISSUE') {
+                                balances[key] -= val;
+                            }
                         }
                     });
                 }
@@ -494,7 +498,6 @@
 
         try {
             const snapshot = await db.collection('epi_transactions')
-                .where('type', '==', 'ISSUE')
                 .where('date', '==', selectedDate)
                 .get();
 
@@ -505,11 +508,17 @@
 
             snapshot.forEach(doc => {
                 const tx = doc.data();
-                const opt = document.createElement('option');
-                opt.value = doc.id;
-                opt.textContent = `${tx.vaccinatorName} (${tx.epiCenter}) - ${tx.time}`;
-                selectDropdown.appendChild(opt);
+                if ((tx.type || '').toUpperCase() === 'ISSUE') {
+                    const opt = document.createElement('option');
+                    opt.value = doc.id;
+                    opt.textContent = `${tx.vaccinatorName || 'Unknown'} (${tx.epiCenter || ''}) - ${tx.time || ''}`;
+                    selectDropdown.appendChild(opt);
+                }
             });
+            
+            if (selectDropdown.options.length <= 1) {
+                selectDropdown.innerHTML = '<option value="">No issue vouchers found for this date</option>';
+            }
         } catch (error) {
             console.error("Error fetching vouchers from Firebase: ", error);
         }
