@@ -297,7 +297,8 @@
 
         <div class="form-container">
             <div class="nav-links">
-                <a href="issued.html">← Issue Stock Form</a> | 
+                <a href="index.html">← Back to Main Page</a> | 
+                <a href="issued.html">Issue Stock Form</a> | 
                 <a href="stock.html">View Master Stock Ledger →</a>
             </div>
             
@@ -956,7 +957,7 @@
     <!-- Firebase SDKs (Modular v10) -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, collection, addDoc, getDocs, query, where } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, getDocs, query } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
         import { firebaseConfig } from "./firebase.js";
 
         // Initialize Firebase
@@ -1075,33 +1076,33 @@
             let toDate = document.getElementById('reportToDate').value;
             let selectedReportItem = document.getElementById('reportSearchDropdown').value;
 
-            if(!fromDate || !toDate) {
-                alert("Please select both 'From' and 'To' dates in the Total Receive Stock filter before downloading the Word report.");
-                document.getElementById('reportFromDate').focus();
-                return;
-            }
-
-            // Fetch records from Firebase Firestore
+            // Fetch records from Firebase Firestore with fallback to LocalStorage
             let filteredRecords = [];
             try {
-                const q = query(collection(db, "epi_transactions"), where("type", "==", "RECEIVE"));
+                const q = query(collection(db, "epi_transactions"));
                 const querySnapshot = await getDocs(q);
                 querySnapshot.forEach((doc) => {
                     let record = doc.data();
-                    if (record.date >= fromDate && record.date <= toDate) {
-                        filteredRecords.push(record);
+                    if (record.type === 'RECEIVE') {
+                        if ((!fromDate || !toDate) || (record.date >= fromDate && record.date <= toDate)) {
+                            filteredRecords.push(record);
+                        }
                     }
                 });
             } catch (error) {
                 console.error("Error fetching from Firebase, falling back to LocalStorage: ", error);
                 let allTransactions = JSON.parse(localStorage.getItem('epi_transactions')) || [];
                 filteredRecords = allTransactions.filter(record => {
-                    return record.type === 'RECEIVE' && record.date >= fromDate && record.date <= toDate;
+                    if (record.type !== 'RECEIVE') return false;
+                    if (fromDate && toDate) {
+                        return record.date >= fromDate && record.date <= toDate;
+                    }
+                    return true;
                 });
             }
 
             if(filteredRecords.length === 0) {
-                alert("No saved stock received records found within the selected date range (" + fromDate + " to " + toDate + ").");
+                alert("No saved stock received records found." + (fromDate && toDate ? " within the selected date range (" + fromDate + " to " + toDate + ")." : ""));
                 return;
             }
 
@@ -1205,7 +1206,7 @@
                     <div class="header-box">
                         <h1>Expanded Program on Immunization (EPI)</h1>
                         <h2>District & Taluka Naushahro Feroze - Total Receive Stock Report</h2>
-                        <p style="font-size: 11px; color: #64748b;">Report Date Range: <strong>${fromDate}</strong> to <strong>${toDate}</strong> ${selectedReportItem ? '| Item: <strong>' + selectedReportItem + '</strong>' : ''}</p>
+                        <p style="font-size: 11px; color: #64748b;">Report Date Range: <strong>${fromDate || 'All'}</strong> to <strong>${toDate || 'All'}</strong> ${selectedReportItem ? '| Item: <strong>' + selectedReportItem + '</strong>' : ''}</p>
                     </div>
 
                     <div class="info-box">
