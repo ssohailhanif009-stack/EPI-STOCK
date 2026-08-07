@@ -198,6 +198,8 @@
             transition: background 0.3s;
             display: inline-block;
             box-shadow: 0 3px 8px rgba(15, 76, 92, 0.2);
+            border: none;
+            cursor: pointer;
         }
 
         .btn-portal:hover {
@@ -258,6 +260,109 @@
             gap: 10px;
         }
     </style>
+
+    <!-- Firebase SDK Setup -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-app.js";
+        import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-analytics.js";
+        import { getFirestore, collection, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyChMj0SRQlA0MrsDGJHr8BNbxSKXuFAYPo",
+            authDomain: "epi-stock-39e88.firebaseapp.com",
+            projectId: "epi-stock-39e88",
+            storageBucket: "epi-stock-39e88.firebasestorage.app",
+            messagingSenderId: "893702330698",
+            appId: "1:893702330698:web:8f2adf7b9d541bb9d909b3",
+            measurementId: "G-ECDS1BK0Y6"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const analytics = getAnalytics(app);
+        const db = getFirestore(app);
+
+        const itemNamesMap = {
+            'v_opv': 'OPV', 'v_hepb': 'HEP-B', 'v_bcg': 'BCG', 'v_bcg_dil': 'BCG Diluent', 'v_penta': 'Pentavalent', 'v_penta10': 'Pentavalent-10 doses',
+            'v_pcv13': 'PCV-13', 'v_rota': 'Rotavirus', 'v_ipv': 'IPV', 'v_mr': 'Measles-Rubella', 'v_mr_dil': 'MR-Diluent', 'v_mr05': 'Measles-Rubella 05 doses', 'v_mr05_dil': 'MR-Diluent 05 doses',
+            'v_tcv': 'TCV', 'v_td': 'TD', 'v_hpv': 'HPV', 'v_panadol': 'Panadol-Drops',
+            'l_005s': '0.05 ml Syringes', 'l_05s': '0.5 ml Syringes', 'l_2s': '2 ml Syringes', 'l_5s': '5 ml Syringes', 'l_safety': 'Safety Box',
+            'l_droppers': 'Droppers', 'l_vac_carrier': 'Vaccine Carrier', 'l_card': 'Vaccination Card', 'l_qrcode': 'QR-Code', 'l_fridgetag': 'Fridge-Tag 2 Device',
+            'camp_nid': 'NID/ Oral Polio Vaccine', 'camp_hpv': 'HPV (Campaign)', 'camp_mr': 'Measles-Rubella (Campaign)', 'camp_mrdil': 'MR-Diluent (Campaign)', 'camp_tcv': 'TCV (Campaign)',
+            'camp_markers': 'Finger Markers', 'camp_scissor': 'Scissor', 'camp_mobtally': 'Mobile Tally Sheet', 'camp_romtally': 'Roming Tally Sheet',
+            'camp_fixtally': 'Fixed Tally Sheet', 'camp_ucmo': 'UCMO Form', 'camp_areainc': 'Area Incharge Form', 'camp_zerodose': 'Zero Dose Form',
+            'camp_aefi': 'AEFI Form', 'camp_repform': 'Reporting Form', 'camp_redcap': 'Red Capsule (Vitamin-A)', 'camp_bluecap': 'Blue Capsule (Vitamin-A)',
+            'camp_ziplocker': 'Zip Locker', 'camp_cap': 'Cap', 'camp_jackets': 'Jackets', 'camp_senitizer': 'Senitizer', 'camp_rotcarrier': 'Rotary Vaccine Carrier',
+            'camp_dustbin': 'Dustbin',
+            'r_daily': 'Daily Vaccination Register', 'r_child': 'Permenant Child Register', 'r_women': 'Permenant Women Register',
+            'r_hpvreg': 'HPV Permenant Register', 'r_reqbook': 'Vaccine Consumption Book', 'r_stockbook': 'Stock Book',
+            'r_tally': 'EPI Tally Sheet', 'r_temp': 'Temprature Sheet', 'r_monitor': 'Monitoring Chart',
+            'r_monthlyrep': 'EPI Monthly Report', 'r_aefibook': 'AEFI Book', 'r_zerobook': 'Zero Weekly Surveillance Book', 'r_vpdbook': 'VPD Weekly Reporting Book'
+        };
+
+        async function toggleOverview() {
+            const panel = document.getElementById('overviewPanel');
+            const grid = document.getElementById('overviewGrid');
+            
+            if (panel.style.display === 'block') {
+                panel.style.display = 'none';
+                return;
+            }
+
+            panel.style.display = 'block';
+            grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: #64748b; padding: 20px;">Loading balances from Firebase...</div>';
+
+            try {
+                const q = query(collection(db, "transactions"), orderBy("id", "asc"));
+                const querySnapshot = await getDocs(q);
+                
+                let transactions = [];
+                querySnapshot.forEach((doc) => {
+                    transactions.push(doc.data());
+                });
+
+                grid.innerHTML = '';
+
+                for (const [key, name] of Object.entries(itemNamesMap)) {
+                    let received = 0;
+                    let issued = 0;
+
+                    transactions.forEach(tx => {
+                        const qty = (tx.items && tx.items[key]) ? Number(tx.items[key]) : 0;
+                        if (tx.type === 'RECEIVE') {
+                            received += qty;
+                        } else if (tx.type === 'ISSUE') {
+                            issued += qty;
+                        }
+                    });
+
+                    const balance = received - issued;
+
+                    const card = document.createElement('div');
+                    card.className = 'stock-card-item';
+                    card.innerHTML = `
+                        <span>${name}</span>
+                        <h5 style="color: ${balance < 0 ? '#dc2626' : '#0f4c5c'}">${balance}</h5>
+                    `;
+                    grid.appendChild(card);
+                }
+            } catch (error) {
+                console.error("Error fetching overview data from Firebase: ", error);
+                grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: red; padding: 20px;">Error loading balances from Firebase.</div>';
+            }
+        }
+
+        function logoutSystem() {
+            if(confirm('Are you sure you want to logout?')) {
+                localStorage.clear();
+                sessionStorage.clear();
+                window.location.href = 'index.html';
+            }
+        }
+
+        // Expose functions to global scope
+        window.toggleOverview = toggleOverview;
+        window.logoutSystem = logoutSystem;
+    </script>
 </head>
 <body>
 
@@ -277,7 +382,7 @@
         <div class="dashboard-content">
             <div class="welcome-banner">
                 <h3>System Overview</h3>
-                <p>Welcome to the official Vaccine Inventory Management System. Use the operational buttons below to manage received stocks, issuing forms, master ledgers, or view real-time item closing balances instantly.</p>
+                <p>Welcome to the official Vaccine Inventory Management System[cite: 3]. Use the operational buttons below to manage received stocks, issuing forms, master ledgers, or view real-time item closing balances instantly[cite: 3].</p>
             </div>
 
             <div class="section-title">📌 CORE OPERATIONAL MODULES</div>
@@ -322,78 +427,11 @@
             </div>
 
             <div class="footer-flex">
-                <span>Civil Hospital Naushahro Feroze &copy; 2026 - EPI Inventory Headquarters</span>
-                <span>Developed by: <b>Aaqib Hanif Rajput</b></span>
+                <span>Civil Hospital Naushahro Feroze &copy; 2026 - EPI Inventory Headquarters[cite: 3]</span>
+                <span>Developed by: <b>Aaqib Hanif Rajput</b>[cite: 3]</span>
             </div>
         </div>
     </div>
-
-<script>
-    const itemNamesMap = {
-        'v_opv': 'OPV', 'v_hepb': 'HEP-B', 'v_bcg': 'BCG', 'v_bcg_dil': 'BCG Diluent', 'v_penta': 'Pentavalent', 'v_penta10': 'Pentavalent-10 doses',
-        'v_pcv13': 'PCV-13', 'v_rota': 'Rotavirus', 'v_ipv': 'IPV', 'v_mr': 'Measles-Rubella', 'v_mr_dil': 'MR-Diluent', 'v_mr05': 'Measles-Rubella 05 doses', 'v_mr05_dil': 'MR-Diluent 05 doses',
-        'v_tcv': 'TCV', 'v_td': 'TD', 'v_hpv': 'HPV', 'v_panadol': 'Panadol-Drops',
-        'l_005s': '0.05 ml Syringes', 'l_05s': '0.5 ml Syringes', 'l_2s': '2 ml Syringes', 'l_5s': '5 ml Syringes', 'l_safety': 'Safety Box',
-        'l_droppers': 'Droppers', 'l_vac_carrier': 'Vaccine Carrier', 'l_card': 'Vaccination Card', 'l_qrcode': 'QR-Code', 'l_fridgetag': 'Fridge-Tag 2 Device',
-        'camp_nid': 'NID/ Oral Polio Vaccine', 'camp_hpv': 'HPV (Campaign)', 'camp_mr': 'Measles-Rubella (Campaign)', 'camp_mrdil': 'MR-Diluent (Campaign)', 'camp_tcv': 'TCV (Campaign)',
-        'camp_markers': 'Finger Markers', 'camp_scissor': 'Scissor', 'camp_mobtally': 'Mobile Tally Sheet', 'camp_romtally': 'Roming Tally Sheet',
-        'camp_fixtally': 'Fixed Tally Sheet', 'camp_ucmo': 'UCMO Form', 'camp_areainc': 'Area Incharge Form', 'camp_zerodose': 'Zero Dose Form',
-        'camp_aefi': 'AEFI Form', 'camp_repform': 'Reporting Form', 'camp_redcap': 'Red Capsule (Vitamin-A)', 'camp_bluecap': 'Blue Capsule (Vitamin-A)',
-        'camp_ziplocker': 'Zip Locker', 'camp_cap': 'Cap', 'camp_jackets': 'Jackets', 'camp_senitizer': 'Senitizer', 'camp_rotcarrier': 'Rotary Vaccine Carrier',
-        'camp_dustbin': 'Dustbin',
-        'r_daily': 'Daily Vaccination Register', 'r_child': 'Permenant Child Register', 'r_women': 'Permenant Women Register',
-        'r_hpvreg': 'HPV Permenant Register', 'r_reqbook': 'Vaccine Consumption Book', 'r_stockbook': 'Stock Book',
-        'r_tally': 'EPI Tally Sheet', 'r_temp': 'Temprature Sheet', 'r_monitor': 'Monitoring Chart',
-        'r_monthlyrep': 'EPI Monthly Report', 'r_aefibook': 'AEFI Book', 'r_zerobook': 'Zero Weekly Surveillance Book', 'r_vpdbook': 'VPD Weekly Reporting Book'
-    };
-
-    function toggleOverview() {
-        const panel = document.getElementById('overviewPanel');
-        const grid = document.getElementById('overviewGrid');
-        
-        if (panel.style.display === 'block') {
-            panel.style.display = 'none';
-            return;
-        }
-
-        panel.style.display = 'block';
-        grid.innerHTML = '';
-
-        const transactions = JSON.parse(localStorage.getItem('epi_transactions')) || [];
-
-        for (const [key, name] of Object.entries(itemNamesMap)) {
-            let received = 0;
-            let issued = 0;
-
-            transactions.forEach(tx => {
-                const qty = (tx.items && tx.items[key]) ? Number(tx.items[key]) : 0;
-                if (tx.type === 'RECEIVE') {
-                    received += qty;
-                } else if (tx.type === 'ISSUE') {
-                    issued += qty;
-                }
-            });
-
-            const balance = received - issued;
-
-            const card = document.createElement('div');
-            card.className = 'stock-card-item';
-            card.innerHTML = `
-                <span>${name}</span>
-                <h5 style="color: ${balance < 0 ? '#dc2626' : '#0f4c5c'}">${balance}</h5>
-            `;
-            grid.appendChild(card);
-        }
-    }
-
-    function logoutSystem() {
-        if(confirm('Are you sure you want to logout?')) {
-            localStorage.clear();
-            sessionStorage.clear();
-            window.location.href = 'index.html';
-        }
-    }
-</script>
 
 </body>
 </html>
