@@ -476,11 +476,15 @@
             let transactions = [];
             querySnapshot.forEach((doc) => {
                 let txData = doc.data();
-                if (txData.type) txData.type = txData.type.toUpperCase();
+                if (txData.type) {
+                    txData.type = txData.type.toUpperCase().trim();
+                } else {
+                    txData.type = 'RECEIVE';
+                }
                 transactions.push(txData);
             });
 
-            // Sort transactions by date and time sequence matching stock.html ledger
+            // Sort transactions by date and time sequence
             transactions.sort((a, b) => {
                 let dateA = (a.date || '') + (a.time || '');
                 let dateB = (b.date || '') + (b.time || '');
@@ -490,7 +494,7 @@
             let balances = {};
             Object.keys(itemDetails).forEach(key => { balances[key] = 0; });
 
-            // Calculate precise running balance for each item exactly like stock.html
+            // Calculate precise running balance for each item without double counting
             Object.keys(itemDetails).forEach(itemKey => {
                 const targetName = itemDetails[itemKey];
                 let runningBal = 0;
@@ -498,31 +502,33 @@
                 transactions.forEach(tx => {
                     let matchedQty = 0;
                     
+                    // Strict check inside items object only using exact match
                     if (tx.items && typeof tx.items === 'object') {
                         Object.keys(tx.items).forEach(k => {
-                            if (isExactMatch(k, itemKey, targetName)) {
+                            if (k === itemKey || k.toLowerCase() === targetName.toLowerCase()) {
                                 matchedQty += Number(tx.items[k]) || 0;
                             }
                         });
                     }
                     
-                    if (tx.detailedItems && Array.isArray(tx.detailedItems)) {
+                    // Fallback check inside detailedItems array using exact match
+                    if (matchedQty === 0 && tx.detailedItems && Array.isArray(tx.detailedItems)) {
                         tx.detailedItems.forEach(item => {
-                            if (item && item.name && isExactMatch(item.name, itemKey, targetName)) {
+                            if (item && item.name && (item.name === itemKey || item.name.toLowerCase() === targetName.toLowerCase())) {
                                 matchedQty += Number(item.qty) || 0;
                             }
                         });
                     }
 
                     if (matchedQty > 0) {
-                        const isIssue = (tx.type === 'ISSUE' || tx.type === 'ISSUED');
                         if (tx.type === 'RECEIVE') {
                             runningBal += matchedQty;
-                        } else if (isIssue) {
+                        } else if (tx.type === 'ISSUE' || tx.type === 'ISSUED') {
                             runningBal -= matchedQty;
                         }
                     }
                 });
+                
                 balances[itemKey] = runningBal;
             });
 
