@@ -484,7 +484,7 @@
                 if (!inputField) return;
                 const currentBal = balances[key];
 
-                inputField.value = ''; // Reset user typed value if refreshing, or keep empty for placeholder
+                inputField.value = ''; 
                 if (currentBal <= 0) {
                     inputField.placeholder = "Available: 0";
                     inputField.classList.add('stock-nil');
