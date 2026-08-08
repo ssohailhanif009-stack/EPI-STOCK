@@ -213,16 +213,14 @@
             'r_monthlyrep': 'EPI Monthly Report', 'r_aefibook': 'AEFI Book', 'r_zerobook': 'Zero Weekly Surveillance Book', 'r_vpdbook': 'VPD Weekly Reporting Book'
         };
 
-        function isItemMatch(dbItemName, selectedKey, targetName) {
+        // Strict and exact matching to prevent double counting
+        function isExactMatch(dbItemName, selectedKey, targetName) {
             if (!dbItemName) return false;
             const cleanDb = String(dbItemName).trim().toLowerCase();
             const cleanKey = String(selectedKey).trim().toLowerCase();
             const cleanTarget = String(targetName).trim().toLowerCase();
 
-            return cleanDb === cleanKey || 
-                   cleanDb === cleanTarget || 
-                   cleanDb.includes(cleanKey) || 
-                   cleanDb.includes(cleanTarget);
+            return cleanDb === cleanKey || cleanDb === cleanTarget;
         }
 
         async function loadLedger() {
@@ -243,14 +241,18 @@
                 let transactions = [];
                 querySnapshot.forEach((doc) => {
                     let txData = doc.data();
-                    if (txData.type) txData.type = txData.type.toUpperCase();
+                    if (txData.type) {
+                        txData.type = txData.type.toUpperCase().trim();
+                    } else {
+                        txData.type = 'RECEIVE';
+                    }
                     transactions.push(txData);
                 });
 
-                // Sort transactions by date
+                // Sort transactions by date and time sequence
                 transactions.sort((a, b) => {
-                    let dateA = a.date || '';
-                    let dateB = b.date || '';
+                    let dateA = (a.date || '') + (a.time || '');
+                    let dateB = (b.date || '') + (b.time || '');
                     return dateA.localeCompare(dateB);
                 });
 
@@ -259,29 +261,30 @@
                 let totalReceived = 0;
                 let totalIssued = 0;
 
-                // First pass: Calculate totals
+                // First pass: Calculate totals securely without duplication
                 transactions.forEach(tx => {
+                    let matchedQty = 0;
+
                     if (tx.items && typeof tx.items === 'object') {
                         Object.keys(tx.items).forEach(key => {
-                            if (isItemMatch(key, selectedItemKey, targetItemName)) {
-                                const qty = Number(tx.items[key]) || 0;
-                                if (qty > 0) {
-                                    if (tx.type === 'RECEIVE') totalReceived += qty;
-                                    else if (tx.type === 'ISSUE' || tx.type === 'ISSUED') totalIssued += qty;
-                                }
+                            if (isExactMatch(key, selectedItemKey, targetItemName)) {
+                                matchedQty += Number(tx.items[key]) || 0;
+                            }
+                        });
+                    } else if (tx.detailedItems && Array.isArray(tx.detailedItems)) {
+                        tx.detailedItems.forEach(item => {
+                            if (item && item.name && isExactMatch(item.name, selectedItemKey, targetItemName)) {
+                                matchedQty += Number(item.qty) || 0;
                             }
                         });
                     }
-                    if (tx.detailedItems && Array.isArray(tx.detailedItems)) {
-                        tx.detailedItems.forEach(item => {
-                            if (isItemMatch(item.name, selectedItemKey, targetItemName)) {
-                                const qty = Number(item.qty) || 0;
-                                if (qty > 0) {
-                                    if (tx.type === 'RECEIVE') totalReceived += qty;
-                                    else if (tx.type === 'ISSUE' || tx.type === 'ISSUED') totalIssued += qty;
-                                }
-                            }
-                        });
+
+                    if (matchedQty > 0) {
+                        if (tx.type === 'RECEIVE') {
+                            totalReceived += matchedQty;
+                        } else if (tx.type === 'ISSUE' || tx.type === 'ISSUED') {
+                            totalIssued += matchedQty;
+                        }
                     }
                 });
 
@@ -293,20 +296,19 @@
                 let runningBalance = 0;
                 let rowCount = 0;
 
-                // Second pass: Render rows
+                // Second pass: Render rows securely
                 transactions.forEach(tx => {
                     let matchedQty = 0;
 
                     if (tx.items && typeof tx.items === 'object') {
                         Object.keys(tx.items).forEach(key => {
-                            if (isItemMatch(key, selectedItemKey, targetItemName)) {
+                            if (isExactMatch(key, selectedItemKey, targetItemName)) {
                                 matchedQty += Number(tx.items[key]) || 0;
                             }
                         });
-                    }
-                    if (tx.detailedItems && Array.isArray(tx.detailedItems)) {
+                    } else if (tx.detailedItems && Array.isArray(tx.detailedItems)) {
                         tx.detailedItems.forEach(item => {
-                            if (isItemMatch(item.name, selectedItemKey, targetItemName)) {
+                            if (item && item.name && isExactMatch(item.name, selectedItemKey, targetItemName)) {
                                 matchedQty += Number(item.qty) || 0;
                             }
                         });
