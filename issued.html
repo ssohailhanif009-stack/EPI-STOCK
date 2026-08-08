@@ -458,16 +458,14 @@
         'r_monthlyrep': 'EPI Monthly Report', 'r_aefibook': 'AEFI Book', 'r_zerobook': 'Zero Weekly Surveillance Book', 'r_vpdbook': 'VPD Weekly Reporting Book'
     };
 
-    function isItemMatch(dbItemName, selectedKey, targetName) {
-        if (!dbItemName) return false;
-        const cleanDb = String(dbItemName).trim().toLowerCase();
-        const cleanKey = String(selectedKey).trim().toLowerCase();
+    // Strict and exact matching function to eliminate double counting
+    function isExactMatch(dbKey, formKey, targetName) {
+        if (!dbKey) return false;
+        const cleanDb = String(dbKey).trim().toLowerCase();
+        const cleanForm = String(formKey).trim().toLowerCase();
         const cleanTarget = String(targetName).trim().toLowerCase();
 
-        return cleanDb === cleanKey || 
-               cleanDb === cleanTarget || 
-               cleanDb.includes(cleanKey) || 
-               cleanDb.includes(cleanTarget);
+        return cleanDb === cleanForm || cleanDb === cleanTarget;
     }
 
     async function checkStockBalances() {
@@ -482,10 +480,10 @@
                 transactions.push(txData);
             });
 
-            // Sort transactions by date to correctly mimic stock.html ledger calculations
+            // Sort transactions by date and time sequence matching stock.html ledger
             transactions.sort((a, b) => {
-                let dateA = a.date || '';
-                let dateB = b.date || '';
+                let dateA = (a.date || '') + (a.time || '');
+                let dateB = (b.date || '') + (b.time || '');
                 return dateA.localeCompare(dateB);
             });
 
@@ -499,16 +497,18 @@
 
                 transactions.forEach(tx => {
                     let matchedQty = 0;
+                    
                     if (tx.items && typeof tx.items === 'object') {
                         Object.keys(tx.items).forEach(k => {
-                            if (isItemMatch(k, itemKey, targetName)) {
+                            if (isExactMatch(k, itemKey, targetName)) {
                                 matchedQty += Number(tx.items[k]) || 0;
                             }
                         });
                     }
+                    
                     if (tx.detailedItems && Array.isArray(tx.detailedItems)) {
                         tx.detailedItems.forEach(item => {
-                            if (isItemMatch(item.name, itemKey, targetName)) {
+                            if (item && item.name && isExactMatch(item.name, itemKey, targetName)) {
                                 matchedQty += Number(item.qty) || 0;
                             }
                         });
