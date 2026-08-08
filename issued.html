@@ -455,12 +455,31 @@
         'r_monthlyrep': 'EPI Monthly Report', 'r_aefibook': 'AEFI Book', 'r_zerobook': 'Zero Weekly Surveillance Book', 'r_vpdbook': 'VPD Weekly Reporting Book'
     };
 
+    <script>
+    const itemDetails = {
+        'v_opv': 'OPV', 'v_hepb': 'HEP-B', 'v_bcg': 'BCG', 'v_bcg_dil': 'BCG Diluent', 'v_penta': 'Pentavalent', 'v_penta10': 'Pentavalent-10 doses',
+        'v_pcv13': 'PCV-13', 'v_rota': 'Rotavirus', 'v_ipv': 'IPV', 'v_mr': 'Measles-Rubella', 'v_mr_dil': 'MR-Diluent', 'v_mr05': 'Measles-Rubella 05 doses', 'v_mr05_dil': 'MR-Diluent 05 doses',
+        'v_tcv': 'TCV', 'v_td': 'TD', 'v_hpv': 'HPV', 'v_panadol': 'Panadol-Drops',
+        'l_005s': '0.05 ml Syringes', 'l_05s': '0.5 ml Syringes', 'l_2s': '2 ml Syringes', 'l_5s': '5 ml Syringes', 'l_safety': 'Safety Box',
+        'l_droppers': 'Droppers', 'l_vac_carrier': 'Vaccine Carrier', 'l_card': 'Vaccination Card', 'l_qrcode': 'QR-Code', 'l_fridgetag': 'Fridge-Tag 2 Device',
+        'camp_nid': 'NID/ Oral Polio Vaccine', 'camp_hpv': 'HPV (Campaign)', 'camp_mr': 'Measles-Rubella (Campaign)', 'camp_mrdil': 'MR-Diluent (Campaign)', 'camp_tcv': 'TCV (Campaign)',
+        'camp_markers': 'Finger Markers', 'camp_scissor': 'Scissor', 'camp_mobtally': 'Mobile Tally Sheet', 'camp_romtally': 'Roming Tally Sheet',
+        'camp_fixtally': 'Fixed Tally Sheet', 'camp_ucmo': 'UCMO Form', 'camp_areainc': 'Area Incharge Form', 'camp_zerodose': 'Zero Dose Form',
+        'camp_aefi': 'AEFI Form', 'camp_repform': 'Reporting Form', 'camp_redcap': 'Red Capsule (Vitamin-A)', 'camp_bluecap': 'Blue Capsule (Vitamin-A)',
+        'camp_ziplocker': 'Zip Locker', 'camp_cap': 'Cap', 'camp_jackets': 'Jackets', 'camp_senitizer': 'Senitizer', 'camp_rotcarrier': 'Rotary Vaccine Carrier',
+        'camp_dustbin': 'Dustbin',
+        'r_daily': 'Daily Vaccination Register', 'r_child': 'Permenant Child Register', 'r_women': 'Permenant Women Register',
+        'r_hpvreg': 'HPV Permenant Register', 'r_reqbook': 'Vaccine Consumption Book', 'r_stockbook': 'Stock Book',
+        'r_tally': 'EPI Tally Sheet', 'r_temp': 'Temprature Sheet', 'r_monitor': 'Monitoring Chart',
+        'r_monthlyrep': 'EPI Monthly Report', 'r_aefibook': 'AEFI Book', 'r_zerobook': 'Zero Weekly Surveillance Book', 'r_vpdbook': 'VPD Weekly Reporting Book'
+    };
+
     async function checkStockBalances() {
         if (!window.db) return;
         try {
             const querySnapshot = await window.getDocs(window.collection(window.db, "epi_transactions"));
             let balances = {};
-            let receivedStatus = {}; // Tracks if an item was ever received
+            let receivedStatus = {}; 
             
             Object.keys(itemDetails).forEach(key => { 
                 balances[key] = 0; 
@@ -482,18 +501,68 @@
             docsList.forEach((tx) => {
                 if (tx.items) {
                     Object.keys(tx.items).forEach(key => {
-                        if (balances[key] !== undefined) {
+                        // Agar key match nahi hoti lekin data mojood hai toh trim/lowercase handle karlo
+                        let matchedKey = key;
+                        if (balances[key] === undefined) {
+                            // Find alternative match if key format differs slightly
+                            let found = Object.keys(balances).عاتq => k === key; // fallback
+                        }
+
+                        if (balances[matchedKey] !== undefined) {
                             const val = Number(tx.items[key]) || 0;
-                            if (tx.type === 'RECEIVE' && val > 0) {
-                                balances[key] += val;
-                                receivedStatus[key] = true; // Mark as received at least once
-                            } else if (tx.type === 'ISSUE') {
-                                balances[key] -= val;
+                            // Type check ko flexible banaya hai (receive, RECEIVE, Received sab chalengay)
+                            const txType = (tx.type || '').toUpperCase();
+                            
+                            if ((txType === 'RECEIVE' || txType === 'RECEIVED') && val > 0) {
+                                balances[matchedKey] += val;
+                                receivedStatus[matchedKey] = true; 
+                            } else if (txType === 'ISSUE' || txType === 'ISSUED') {
+                                balances[matchedKey] -= val;
+                                // Agar pehle receive nahi bhi hua aur issue ho gaya, toh bhi negative balance handle ho jaye
+                                receivedStatus[matchedKey] = true; 
                             }
                         }
                     });
                 }
             });
+
+            console.log("Calculated Balances:", balances);
+            console.log("Received Status:", receivedStatus);
+
+            Object.keys(itemDetails).forEach(key => {
+                const inputField = document.getElementById(key);
+                const warningSpan = document.getElementById('warn_' + key);
+                if (!inputField) return;
+                
+                const currentBal = balances[key];
+                const everReceived = receivedStatus[key];
+
+                inputField.value = ''; 
+
+                // Agar item ki entry hi nahi mili ya balance 0/negative hai
+                if (!everReceived || currentBal <= 0) {
+                    inputField.placeholder = "Stock Nil (0)";
+                    inputField.classList.add('stock-nil');
+                    inputField.setAttribute('disabled', 'true');
+                    if (warningSpan) {
+                        warningSpan.innerText = !everReceived ? "Never Received / Nil" : `Stock Nil (${currentBal})`;
+                        warningSpan.style.display = 'block';
+                    }
+                } else {
+                    inputField.placeholder = `Available: ${currentBal}`;
+                    inputField.classList.remove('stock-nil');
+                    inputField.removeAttribute('disabled');
+                    if (warningSpan) {
+                        warningSpan.style.display = 'none';
+                    }
+                }
+            });
+        } catch (error) {
+            console.error("Error fetching stock balances: ", error);
+        }
+    }
+    // ... baaki sara code wese hi rahay ga
+</script>
 
             Object.keys(itemDetails).forEach(key => {
                 const inputField = document.getElementById(key);
