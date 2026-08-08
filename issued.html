@@ -154,6 +154,13 @@
             font-size: 12px;
             margin-bottom: 4px;
             color: #1e293b;
+            display: flex;
+            justify-content: space-between;
+        }
+        .stock-badge {
+            font-size: 11px;
+            color: #0369a1;
+            font-weight: bold;
         }
         input, select {
             padding: 8px 12px;
@@ -163,10 +170,6 @@
             background: #fff;
             outline: none;
             transition: all 0.3s;
-        }
-        input::placeholder {
-            color: #94a3b8;
-            font-style: italic;
         }
         input:focus, select:focus {
             border-color: var(--primary-color);
@@ -342,23 +345,23 @@
             <div class="section-box">
                 <div class="section-title">Vaccines Issued</div>
                 <div class="form-grid">
-                    <div class="form-group"><label>OPV</label><input type="number" id="v_opv" min="0"><span class="nil-warning" id="warn_v_opv">Stock Nil (0)</span></div>
-                    <div class="form-group"><label>HEP-B</label><input type="number" id="v_hepb" min="0"><span class="nil-warning" id="warn_v_hepb">Stock Nil (0)</span></div>
-                    <div class="form-group"><label>BCG</label><input type="number" id="v_bcg" min="0"><span class="nil-warning" id="warn_v_bcg">Stock Nil (0)</span></div>
-                    <div class="form-group"><label>BCG Diluent</label><input type="number" id="v_bcg_dil" min="0"><span class="nil-warning" id="warn_v_bcg_dil">Stock Nil (0)</span></div>
-                    <div class="form-group"><label>Pentavalent</label><input type="number" id="v_penta" min="0"><span class="nil-warning" id="warn_v_penta">Stock Nil (0)</span></div>
-                    <div class="form-group"><label>Pentavalent-10 doses</label><input type="number" id="v_penta10" min="0"><span class="nil-warning" id="warn_v_penta10">Stock Nil (0)</span></div>
-                    <div class="form-group"><label>PCV-13</label><input type="number" id="v_pcv13" min="0"><span class="nil-warning" id="warn_v_pcv13">Stock Nil (0)</span></div>
-                    <div class="form-group"><label>Rotavirus</label><input type="number" id="v_rota" min="0"><span class="nil-warning" id="warn_v_rota">Stock Nil (0)</span></div>
-                    <div class="form-group"><label>IPV</label><input type="number" id="v_ipv" min="0"><span class="nil-warning" id="warn_v_ipv">Stock Nil (0)</span></div>
-                    <div class="form-group"><label>Measles-Rubella</label><input type="number" id="v_mr" min="0"><span class="nil-warning" id="warn_v_mr">Stock Nil (0)</span></div>
-                    <div class="form-group"><label>MR-Diluent</label><input type="number" id="v_mr_dil" min="0"><span class="nil-warning" id="warn_v_mr_dil">Stock Nil (0)</span></div>
-                    <div class="form-group"><label>Measles-Rubella 05 doses</label><input type="number" id="v_mr05" min="0"><span class="nil-warning" id="warn_v_mr05">Stock Nil (0)</span></div>
-                    <div class="form-group"><label>MR-Diluent 05 doses</label><input type="number" id="v_mr05_dil" min="0"><span class="nil-warning" id="warn_v_mr05_dil">Stock Nil (0)</span></div>
-                    <div class="form-group"><label>TCV</label><input type="number" id="v_tcv" min="0"><span class="nil-warning" id="warn_v_tcv">Stock Nil (0)</span></div>
-                    <div class="form-group"><label>TD</label><input type="number" id="v_td" min="0"><span class="nil-warning" id="warn_v_td">Stock Nil (0)</span></div>
-                    <div class="form-group"><label>HPV</label><input type="number" id="v_hpv" min="0"><span class="nil-warning" id="warn_v_hpv">Stock Nil (0)</span></div>
-                    <div class="form-group"><label>Panadol-Drops</label><input type="number" id="v_panadol" min="0"><span class="nil-warning" id="warn_v_panadol">Stock Nil (0)</span></div>
+                    <div class="form-group"><label>OPV <span class="stock-badge" id="badge_v_opv">Balance: --</span></label><input type="number" id="v_opv" value="0" min="0"><span class="nil-warning" id="warn_v_opv">Stock Nil (0)</span></div>
+                    <div class="form-group"><label>HEP-B <span class="stock-badge" id="badge_v_hepb">Balance: --</span></label><input type="number" id="v_hepb" value="0" min="0"><span class="nil-warning" id="warn_v_hepb">Stock Nil (0)</span></div>
+                    <div class="form-group"><label>BCG <span class="stock-badge" id="badge_v_bcg">Balance: --</span></label><input type="number" id="v_bcg" value="0" min="0"><span class="nil-warning" id="warn_v_bcg">Stock Nil (0)</span></div>
+                    <div class="form-group"><label>BCG Diluent <span class="stock-badge" id="badge_v_bcg_dil">Balance: --</span></label><input type="number" id="v_bcg_dil" value="0" min="0"><span class="nil-warning" id="warn_v_bcg_dil">Stock Nil (0)</span></div>
+                    <div class="form-group"><label>Pentavalent <span class="stock-badge" id="badge_v_penta">Balance: --</span></label><input type="number" id="v_penta" value="0" min="0"><span class="nil-warning" id="warn_v_penta">Stock Nil (0)</span></div>
+                    <div class="form-group"><label>Pentavalent-10 doses <span class="stock-badge" id="badge_v_penta10">Balance: --</span></label><input type="number" id="v_penta10" value="0" min="0"><span class="nil-warning" id="warn_v_penta10">Stock Nil (0)</span></div>
+                    <div class="form-group"><label>PCV-13 <span class="stock-badge" id="badge_v_pcv13">Balance: --</span></label><input type="number" id="v_pcv13" value="0" min="0"><span class="nil-warning" id="warn_v_pcv13">Stock Nil (0)</span></div>
+                    <div class="form-group"><label>Rotavirus <span class="stock-badge" id="badge_v_rota">Balance: --</span></label><input type="number" id="v_rota" value="0" min="0"><span class="nil-warning" id="warn_v_rota">Stock Nil (0)</span></div>
+                    <div class="form-group"><label>IPV <span class="stock-badge" id="badge_v_ipv">Balance: --</span></label><input type="number" id="v_ipv" value="0" min="0"><span class="nil-warning" id="warn_v_ipv">Stock Nil (0)</span></div>
+                    <div class="form-group"><label>Measles-Rubella <span class="stock-badge" id="badge_v_mr">Balance: --</span></label><input type="number" id="v_mr" value="0" min="0"><span class="nil-warning" id="warn_v_mr">Stock Nil (0)</span></div>
+                    <div class="form-group"><label>MR-Diluent <span class="stock-badge" id="badge_v_mr_dil">Balance: --</span></label><input type="number" id="v_mr_dil" value="0" min="0"><span class="nil-warning" id="warn_v_mr_dil">Stock Nil (0)</span></div>
+                    <div class="form-group"><label>Measles-Rubella 05 doses <span class="stock-badge" id="badge_v_mr05">Balance: --</span></label><input type="number" id="v_mr05" value="0" min="0"><span class="nil-warning" id="warn_v_mr05">Stock Nil (0)</span></div>
+                    <div class="form-group"><label>MR-Diluent 05 doses <span class="stock-badge" id="badge_v_mr05_dil">Balance: --</span></label><input type="number" id="v_mr05_dil" value="0" min="0"><span class="nil-warning" id="warn_v_mr05_dil">Stock Nil (0)</span></div>
+                    <div class="form-group"><label>TCV <span class="stock-badge" id="badge_v_tcv">Balance: --</span></label><input type="number" id="v_tcv" value="0" min="0"><span class="nil-warning" id="warn_v_tcv">Stock Nil (0)</span></div>
+                    <div class="form-group"><label>TD <span class="stock-badge" id="badge_v_td">Balance: --</span></label><input type="number" id="v_td" value="0" min="0"><span class="nil-warning" id="warn_v_td">Stock Nil (0)</span></div>
+                    <div class="form-group"><label>HPV <span class="stock-badge" id="badge_v_hpv">Balance: --</span></label><input type="number" id="v_hpv" value="0" min="0"><span class="nil-warning" id="warn_v_hpv">Stock Nil (0)</span></div>
+                    <div class="form-group"><label>Panadol-Drops <span class="stock-badge" id="badge_v_panadol">Balance: --</span></label><input type="number" id="v_panadol" value="0" min="0"><span class="nil-warning" id="warn_v_panadol">Stock Nil (0)</span></div>
                 </div>
             </div>
 
@@ -366,16 +369,16 @@
             <div class="section-box">
                 <div class="section-title">Logistics Issued</div>
                 <div class="form-grid">
-                    <div class="form-group"><label>0.05 ml Syringes</label><input type="number" id="l_005s" min="0"><span class="nil-warning" id="warn_l_005s">Stock Nil (0)</span></div>
-                    <div class="form-group"><label>0.5 ml Syringes</label><input type="number" id="l_05s" min="0"><span class="nil-warning" id="warn_l_05s">Stock Nil (0)</span></div>
-                    <div class="form-group"><label>2 ml Syringes</label><input type="number" id="l_2s" min="0"><span class="nil-warning" id="warn_l_2s">Stock Nil (0)</span></div>
-                    <div class="form-group"><label>5 ml Syringes</label><input type="number" id="l_5s" min="0"><span class="nil-warning" id="warn_l_5s">Stock Nil (0)</span></div>
-                    <div class="form-group"><label>Safety Box</label><input type="number" id="l_safety" min="0"><span class="nil-warning" id="warn_l_safety">Stock Nil (0)</span></div>
-                    <div class="form-group"><label>Droppers</label><input type="number" id="l_droppers" min="0"><span class="nil-warning" id="warn_l_droppers">Stock Nil (0)</span></div>
-                    <div class="form-group"><label>Vaccine Carrier</label><input type="number" id="l_vac_carrier" min="0"><span class="nil-warning" id="warn_l_vac_carrier">Stock Nil (0)</span></div>
-                    <div class="form-group"><label>Vaccination Card</label><input type="number" id="l_card" min="0"><span class="nil-warning" id="warn_l_card">Stock Nil (0)</span></div>
-                    <div class="form-group"><label>QR-Code</label><input type="number" id="l_qrcode" min="0"><span class="nil-warning" id="warn_l_qrcode">Stock Nil (0)</span></div>
-                    <div class="form-group"><label>Fridge-Tag 2 Device</label><input type="number" id="l_fridgetag" min="0"><span class="nil-warning" id="warn_l_fridgetag">Stock Nil (0)</span></div>
+                    <div class="form-group"><label>0.05 ml Syringes <span class="stock-badge" id="badge_l_005s">Balance: --</span></label><input type="number" id="l_005s" value="0" min="0"><span class="nil-warning" id="warn_l_005s">Stock Nil (0)</span></div>
+                    <div class="form-group"><label>0.5 ml Syringes <span class="stock-badge" id="badge_l_05s">Balance: --</span></label><input type="number" id="l_05s" value="0" min="0"><span class="nil-warning" id="warn_l_05s">Stock Nil (0)</span></div>
+                    <div class="form-group"><label>2 ml Syringes <span class="stock-badge" id="badge_l_2s">Balance: --</span></label><input type="number" id="l_2s" value="0" min="0"><span class="nil-warning" id="warn_l_2s">Stock Nil (0)</span></div>
+                    <div class="form-group"><label>5 ml Syringes <span class="stock-badge" id="badge_l_5s">Balance: --</span></label><input type="number" id="l_5s" value="0" min="0"><span class="nil-warning" id="warn_l_5s">Stock Nil (0)</span></div>
+                    <div class="form-group"><label>Safety Box <span class="stock-badge" id="badge_l_safety">Balance: --</span></label><input type="number" id="l_safety" value="0" min="0"><span class="nil-warning" id="warn_l_safety">Stock Nil (0)</span></div>
+                    <div class="form-group"><label>Droppers <span class="stock-badge" id="badge_l_droppers">Balance: --</span></label><input type="number" id="l_droppers" value="0" min="0"><span class="nil-warning" id="warn_l_droppers">Stock Nil (0)</span></div>
+                    <div class="form-group"><label>Vaccine Carrier <span class="stock-badge" id="badge_l_vac_carrier">Balance: --</span></label><input type="number" id="l_vac_carrier" value="0" min="0"><span class="nil-warning" id="warn_l_vac_carrier">Stock Nil (0)</span></div>
+                    <div class="form-group"><label>Vaccination Card <span class="stock-badge" id="badge_l_card">Balance: --</span></label><input type="number" id="l_card" value="0" min="0"><span class="nil-warning" id="warn_l_card">Stock Nil (0)</span></div>
+                    <div class="form-group"><label>QR-Code <span class="stock-badge" id="badge_l_qrcode">Balance: --</span></label><input type="number" id="l_qrcode" value="0" min="0"><span class="nil-warning" id="warn_l_qrcode">Stock Nil (0)</span></div>
+                    <div class="form-group"><label>Fridge-Tag 2 Device <span class="stock-badge" id="badge_l_fridgetag">Balance: --</span></label><input type="number" id="l_fridgetag" value="0" min="0"><span class="nil-warning" id="warn_l_fridgetag">Stock Nil (0)</span></div>
                 </div>
             </div>
 
@@ -383,29 +386,29 @@
             <div class="section-box">
                 <div class="section-title">Campaign Vaccine & Items Issued</div>
                 <div class="form-grid">
-                    <div class="form-group"><label>NID/ Oral Polio Vaccine</label><input type="number" id="camp_nid" min="0"><span class="nil-warning" id="warn_camp_nid">Stock Nil (0)</span></div>
-                    <div class="form-group"><label>HPV (Campaign)</label><input type="number" id="camp_hpv" min="0"><span class="nil-warning" id="warn_camp_hpv">Stock Nil (0)</span></div>
-                    <div class="form-group"><label>Measles-Rubella (Campaign)</label><input type="number" id="camp_mr" min="0"><span class="nil-warning" id="warn_camp_mr">Stock Nil (0)</span></div>
-                    <div class="form-group"><label>MR-Diluent (Campaign)</label><input type="number" id="camp_mrdil" min="0"><span class="nil-warning" id="warn_camp_mrdil">Stock Nil (0)</span></div>
-                    <div class="form-group"><label>TCV (Campaign)</label><input type="number" id="camp_tcv" min="0"><span class="nil-warning" id="warn_camp_tcv">Stock Nil (0)</span></div>
-                    <div class="form-group"><label>Finger Markers</label><input type="number" id="camp_markers" min="0"><span class="nil-warning" id="warn_camp_markers">Stock Nil (0)</span></div>
-                    <div class="form-group"><label>Scissor</label><input type="number" id="camp_scissor" min="0"><span class="nil-warning" id="warn_camp_scissor">Stock Nil (0)</span></div>
-                    <div class="form-group"><label>Mobile Tally Sheet</label><input type="number" id="camp_mobtally" min="0"><span class="nil-warning" id="warn_camp_mobtally">Stock Nil (0)</span></div>
-                    <div class="form-group"><label>Roming Tally Sheet</label><input type="number" id="camp_romtally" min="0"><span class="nil-warning" id="warn_camp_romtally">Stock Nil (0)</span></div>
-                    <div class="form-group"><label>Fixed Tally Sheet</label><input type="number" id="camp_fixtally" min="0"><span class="nil-warning" id="warn_camp_fixtally">Stock Nil (0)</span></div>
-                    <div class="form-group"><label>UCMO Form</label><input type="number" id="camp_ucmo" min="0"><span class="nil-warning" id="warn_camp_ucmo">Stock Nil (0)</span></div>
-                    <div class="form-group"><label>Area Incharge Form</label><input type="number" id="camp_areainc" min="0"><span class="nil-warning" id="warn_camp_areainc">Stock Nil (0)</span></div>
-                    <div class="form-group"><label>Zero Dose Form</label><input type="number" id="camp_zerodose" min="0"><span class="nil-warning" id="warn_camp_zerodose">Stock Nil (0)</span></div>
-                    <div class="form-group"><label>AEFI Form</label><input type="number" id="camp_aefi" min="0"><span class="nil-warning" id="warn_camp_aefi">Stock Nil (0)</span></div>
-                    <div class="form-group"><label>Reporting Form</label><input type="number" id="camp_repform" min="0"><span class="nil-warning" id="warn_camp_repform">Stock Nil (0)</span></div>
-                    <div class="form-group"><label>Red Capsule (Vitamin-A)</label><input type="number" id="camp_redcap" min="0"><span class="nil-warning" id="warn_camp_redcap">Stock Nil (0)</span></div>
-                    <div class="form-group"><label>Blue Capsule (Vitamin-A)</label><input type="number" id="camp_bluecap" min="0"><span class="nil-warning" id="warn_camp_bluecap">Stock Nil (0)</span></div>
-                    <div class="form-group"><label>Zip Locker</label><input type="number" id="camp_ziplocker" min="0"><span class="nil-warning" id="warn_camp_ziplocker">Stock Nil (0)</span></div>
-                    <div class="form-group"><label>Cap</label><input type="number" id="camp_cap" min="0"><span class="nil-warning" id="warn_camp_cap">Stock Nil (0)</span></div>
-                    <div class="form-group"><label>Jackets</label><input type="number" id="camp_jackets" min="0"><span class="nil-warning" id="warn_camp_jackets">Stock Nil (0)</span></div>
-                    <div class="form-group"><label>Senitizer</label><input type="number" id="camp_senitizer" min="0"><span class="nil-warning" id="warn_camp_senitizer">Stock Nil (0)</span></div>
-                    <div class="form-group"><label>Rotary Vaccine Carrier</label><input type="number" id="camp_rotcarrier" min="0"><span class="nil-warning" id="warn_camp_rotcarrier">Stock Nil (0)</span></div>
-                    <div class="form-group"><label>Dustbin</label><input type="number" id="camp_dustbin" min="0"><span class="nil-warning" id="warn_camp_dustbin">Stock Nil (0)</span></div>
+                    <div class="form-group"><label>NID/ Oral Polio Vaccine <span class="stock-badge" id="badge_camp_nid">Balance: --</span></label><input type="number" id="camp_nid" value="0" min="0"><span class="nil-warning" id="warn_camp_nid">Stock Nil (0)</span></div>
+                    <div class="form-group"><label>HPV (Campaign) <span class="stock-badge" id="badge_camp_hpv">Balance: --</span></label><input type="number" id="camp_hpv" value="0" min="0"><span class="nil-warning" id="warn_camp_hpv">Stock Nil (0)</span></div>
+                    <div class="form-group"><label>Measles-Rubella (Campaign) <span class="stock-badge" id="badge_camp_mr">Balance: --</span></label><input type="number" id="camp_mr" value="0" min="0"><span class="nil-warning" id="warn_camp_mr">Stock Nil (0)</span></div>
+                    <div class="form-group"><label>MR-Diluent (Campaign) <span class="stock-badge" id="badge_camp_mrdil">Balance: --</span></label><input type="number" id="camp_mrdil" value="0" min="0"><span class="nil-warning" id="warn_camp_mrdil">Stock Nil (0)</span></div>
+                    <div class="form-group"><label>TCV (Campaign) <span class="stock-badge" id="badge_camp_tcv">Balance: --</span></label><input type="number" id="camp_tcv" value="0" min="0"><span class="nil-warning" id="warn_camp_tcv">Stock Nil (0)</span></div>
+                    <div class="form-group"><label>Finger Markers <span class="stock-badge" id="badge_camp_markers">Balance: --</span></label><input type="number" id="camp_markers" value="0" min="0"><span class="nil-warning" id="warn_camp_markers">Stock Nil (0)</span></div>
+                    <div class="form-group"><label>Scissor <span class="stock-badge" id="badge_camp_scissor">Balance: --</span></label><input type="number" id="camp_scissor" value="0" min="0"><span class="nil-warning" id="warn_camp_scissor">Stock Nil (0)</span></div>
+                    <div class="form-group"><label>Mobile Tally Sheet <span class="stock-badge" id="badge_camp_mobtally">Balance: --</span></label><input type="number" id="camp_mobtally" value="0" min="0"><span class="nil-warning" id="warn_camp_mobtally">Stock Nil (0)</span></div>
+                    <div class="form-group"><label>Roming Tally Sheet <span class="stock-badge" id="badge_camp_romtally">Balance: --</span></label><input type="number" id="camp_romtally" value="0" min="0"><span class="nil-warning" id="warn_camp_romtally">Stock Nil (0)</span></div>
+                    <div class="form-group"><label>Fixed Tally Sheet <span class="stock-badge" id="badge_camp_fixtally">Balance: --</span></label><input type="number" id="camp_fixtally" value="0" min="0"><span class="nil-warning" id="warn_camp_fixtally">Stock Nil (0)</span></div>
+                    <div class="form-group"><label>UCMO Form <span class="stock-badge" id="badge_camp_ucmo">Balance: --</span></label><input type="number" id="camp_ucmo" value="0" min="0"><span class="nil-warning" id="warn_camp_ucmo">Stock Nil (0)</span></div>
+                    <div class="form-group"><label>Area Incharge Form <span class="stock-badge" id="badge_camp_areainc">Balance: --</span></label><input type="number" id="camp_areainc" value="0" min="0"><span class="nil-warning" id="warn_camp_areainc">Stock Nil (0)</span></div>
+                    <div class="form-group"><label>Zero Dose Form <span class="stock-badge" id="badge_camp_zerodose">Balance: --</span></label><input type="number" id="camp_zerodose" value="0" min="0"><span class="nil-warning" id="warn_camp_zerodose">Stock Nil (0)</span></div>
+                    <div class="form-group"><label>AEFI Form <span class="stock-badge" id="badge_camp_aefi">Balance: --</span></label><input type="number" id="camp_aefi" value="0" min="0"><span class="nil-warning" id="warn_camp_aefi">Stock Nil (0)</span></div>
+                    <div class="form-group"><label>Reporting Form <span class="stock-badge" id="badge_camp_repform">Balance: --</span></label><input type="number" id="camp_repform" value="0" min="0"><span class="nil-warning" id="warn_camp_repform">Stock Nil (0)</span></div>
+                    <div class="form-group"><label>Red Capsule (Vitamin-A) <span class="stock-badge" id="badge_camp_redcap">Balance: --</span></label><input type="number" id="camp_redcap" value="0" min="0"><span class="nil-warning" id="warn_camp_redcap">Stock Nil (0)</span></div>
+                    <div class="form-group"><label>Blue Capsule (Vitamin-A) <span class="stock-badge" id="badge_camp_bluecap">Balance: --</span></label><input type="number" id="camp_bluecap" value="0" min="0"><span class="nil-warning" id="warn_camp_bluecap">Stock Nil (0)</span></div>
+                    <div class="form-group"><label>Zip Locker <span class="stock-badge" id="badge_camp_ziplocker">Balance: --</span></label><input type="number" id="camp_ziplocker" value="0" min="0"><span class="nil-warning" id="warn_camp_ziplocker">Stock Nil (0)</span></div>
+                    <div class="form-group"><label>Cap <span class="stock-badge" id="badge_camp_cap">Balance: --</span></label><input type="number" id="camp_cap" value="0" min="0"><span class="nil-warning" id="warn_camp_cap">Stock Nil (0)</span></div>
+                    <div class="form-group"><label>Jackets <span class="stock-badge" id="badge_camp_jackets">Balance: --</span></label><input type="number" id="camp_jackets" value="0" min="0"><span class="nil-warning" id="warn_camp_jackets">Stock Nil (0)</span></div>
+                    <div class="form-group"><label>Senitizer <span class="stock-badge" id="badge_camp_senitizer">Balance: --</span></label><input type="number" id="camp_senitizer" value="0" min="0"><span class="nil-warning" id="warn_camp_senitizer">Stock Nil (0)</span></div>
+                    <div class="form-group"><label>Rotary Vaccine Carrier <span class="stock-badge" id="badge_camp_rotcarrier">Balance: --</span></label><input type="number" id="camp_rotcarrier" value="0" min="0"><span class="nil-warning" id="warn_camp_rotcarrier">Stock Nil (0)</span></div>
+                    <div class="form-group"><label>Dustbin <span class="stock-badge" id="badge_camp_dustbin">Balance: --</span></label><input type="number" id="camp_dustbin" value="0" min="0"><span class="nil-warning" id="warn_camp_dustbin">Stock Nil (0)</span></div>
                 </div>
             </div>
 
@@ -413,19 +416,19 @@
             <div class="section-box">
                 <div class="section-title">Registers & Records Issued</div>
                 <div class="form-grid">
-                    <div class="form-group"><label>Daily Vaccination Register</label><input type="number" id="r_daily" min="0"><span class="nil-warning" id="warn_r_daily">Stock Nil (0)</span></div>
-                    <div class="form-group"><label>Permenant Child Register</label><input type="number" id="r_child" min="0"><span class="nil-warning" id="warn_r_child">Stock Nil (0)</span></div>
-                    <div class="form-group"><label>Permenant Women Register</label><input type="number" id="r_women" min="0"><span class="nil-warning" id="warn_r_women">Stock Nil (0)</span></div>
-                    <div class="form-group"><label>HPV Permenant Register</label><input type="number" id="r_hpvreg" min="0"><span class="nil-warning" id="warn_r_hpvreg">Stock Nil (0)</span></div>
-                    <div class="form-group"><label>Vaccine Consumption Book</label><input type="number" id="r_reqbook" min="0"><span class="nil-warning" id="warn_r_reqbook">Stock Nil (0)</span></div>
-                    <div class="form-group"><label>Stock Book</label><input type="number" id="r_stockbook" min="0"><span class="nil-warning" id="warn_r_stockbook">Stock Nil (0)</span></div>
-                    <div class="form-group"><label>EPI Tally Sheet</label><input type="number" id="r_tally" min="0"><span class="nil-warning" id="warn_r_tally">Stock Nil (0)</span></div>
-                    <div class="form-group"><label>Temprature Sheet</label><input type="number" id="r_temp" min="0"><span class="nil-warning" id="warn_r_temp">Stock Nil (0)</span></div>
-                    <div class="form-group"><label>Monitoring Chart</label><input type="number" id="r_monitor" min="0"><span class="nil-warning" id="warn_r_monitor">Stock Nil (0)</span></div>
-                    <div class="form-group"><label>EPI Monthly Report</label><input type="number" id="r_monthlyrep" min="0"><span class="nil-warning" id="warn_r_monthlyrep">Stock Nil (0)</span></div>
-                    <div class="form-group"><label>AEFI Book</label><input type="number" id="r_aefibook" min="0"><span class="nil-warning" id="warn_r_aefibook">Stock Nil (0)</span></div>
-                    <div class="form-group"><label>Zero Weekly Surveillance Book</label><input type="number" id="r_zerobook" min="0"><span class="nil-warning" id="warn_r_zerobook">Stock Nil (0)</span></div>
-                    <div class="form-group"><label>VPD Weekly Reporting Book</label><input type="number" id="r_vpdbook" min="0"><span class="nil-warning" id="warn_r_vpdbook">Stock Nil (0)</span></div>
+                    <div class="form-group"><label>Daily Vaccination Register <span class="stock-badge" id="badge_r_daily">Balance: --</span></label><input type="number" id="r_daily" value="0" min="0"><span class="nil-warning" id="warn_r_daily">Stock Nil (0)</span></div>
+                    <div class="form-group"><label>Permenant Child Register <span class="stock-badge" id="badge_r_child">Balance: --</span></label><input type="number" id="r_child" value="0" min="0"><span class="nil-warning" id="warn_r_child">Stock Nil (0)</span></div>
+                    <div class="form-group"><label>Permenant Women Register <span class="stock-badge" id="badge_r_women">Balance: --</span></label><input type="number" id="r_women" value="0" min="0"><span class="nil-warning" id="warn_r_women">Stock Nil (0)</span></div>
+                    <div class="form-group"><label>HPV Permenant Register <span class="stock-badge" id="badge_r_hpvreg">Balance: --</span></label><input type="number" id="r_hpvreg" value="0" min="0"><span class="nil-warning" id="warn_r_hpvreg">Stock Nil (0)</span></div>
+                    <div class="form-group"><label>Vaccine Consumption Book <span class="stock-badge" id="badge_r_reqbook">Balance: --</span></label><input type="number" id="r_reqbook" value="0" min="0"><span class="nil-warning" id="warn_r_reqbook">Stock Nil (0)</span></div>
+                    <div class="form-group"><label>Stock Book <span class="stock-badge" id="badge_r_stockbook">Balance: --</span></label><input type="number" id="r_stockbook" value="0" min="0"><span class="nil-warning" id="warn_r_stockbook">Stock Nil (0)</span></div>
+                    <div class="form-group"><label>EPI Tally Sheet <span class="stock-badge" id="badge_r_tally">Balance: --</span></label><input type="number" id="r_tally" value="0" min="0"><span class="nil-warning" id="warn_r_tally">Stock Nil (0)</span></div>
+                    <div class="form-group"><label>Temprature Sheet <span class="stock-badge" id="badge_r_temp">Balance: --</span></label><input type="number" id="r_temp" value="0" min="0"><span class="nil-warning" id="warn_r_temp">Stock Nil (0)</span></div>
+                    <div class="form-group"><label>Monitoring Chart <span class="stock-badge" id="badge_r_monitor">Balance: --</span></label><input type="number" id="r_monitor" value="0" min="0"><span class="nil-warning" id="warn_r_monitor">Stock Nil (0)</span></div>
+                    <div class="form-group"><label>EPI Monthly Report <span class="stock-badge" id="badge_r_monthlyrep">Balance: --</span></label><input type="number" id="r_monthlyrep" value="0" min="0"><span class="nil-warning" id="warn_r_monthlyrep">Stock Nil (0)</span></div>
+                    <div class="form-group"><label>AEFI Book <span class="stock-badge" id="badge_r_aefibook">Balance: --</span></label><input type="number" id="r_aefibook" value="0" min="0"><span class="nil-warning" id="warn_r_aefibook">Stock Nil (0)</span></div>
+                    <div class="form-group"><label>Zero Weekly Surveillance Book <span class="stock-badge" id="badge_r_zerobook">Balance: --</span></label><input type="number" id="r_zerobook" value="0" min="0"><span class="nil-warning" id="warn_r_zerobook">Stock Nil (0)</span></div>
+                    <div class="form-group"><label>VPD Weekly Reporting Book <span class="stock-badge" id="badge_r_vpdbook">Balance: --</span></label><input type="number" id="r_vpdbook" value="0" min="0"><span class="nil-warning" id="warn_r_vpdbook">Stock Nil (0)</span></div>
                 </div>
             </div>
 
@@ -455,71 +458,99 @@
         'r_monthlyrep': 'EPI Monthly Report', 'r_aefibook': 'AEFI Book', 'r_zerobook': 'Zero Weekly Surveillance Book', 'r_vpdbook': 'VPD Weekly Reporting Book'
     };
 
+    function isItemMatch(dbItemName, selectedKey, targetName) {
+        if (!dbItemName) return false;
+        const cleanDb = String(dbItemName).trim().toLowerCase();
+        const cleanKey = String(selectedKey).trim().toLowerCase();
+        const cleanTarget = String(targetName).trim().toLowerCase();
+
+        return cleanDb === cleanKey || 
+               cleanDb === cleanTarget || 
+               cleanDb.includes(cleanKey) || 
+               cleanDb.includes(cleanTarget);
+    }
+
     async function checkStockBalances() {
         if (!window.db) return;
         try {
             const querySnapshot = await window.getDocs(window.collection(window.db, "epi_transactions"));
-            let balances = {};
-            let receivedStatus = {}; 
             
-            Object.keys(itemDetails).forEach(key => { 
-                balances[key] = 0; 
-                receivedStatus[key] = false; 
-            });
-
-            let docsList = [];
+            let transactions = [];
             querySnapshot.forEach((doc) => {
-                docsList.push({ id: doc.id, ...doc.data() });
-            });
-            
-            docsList.sort((a, b) => {
-                let dateA = new Date(a.date || 0);
-                let dateB = new Date(b.date || 0);
-                if (dateA - dateB !== 0) return dateA - dateB;
-                return (a.id || 0) - (b.id || 0);
+                let txData = doc.data();
+                if (txData.type) txData.type = txData.type.toUpperCase();
+                transactions.push(txData);
             });
 
-            docsList.forEach((tx) => {
-                if (tx.items) {
-                    Object.keys(tx.items).forEach(key => {
-                        if (balances[key] !== undefined) {
-                            const val = Number(tx.items[key]) || 0;
-                            const txType = (tx.type || '').toUpperCase();
-                            
-                            if ((txType === 'RECEIVE' || txType === 'RECEIVED') && val > 0) {
-                                balances[key] += val;
-                                receivedStatus[key] = true; 
-                            } else if (txType === 'ISSUE' || txType === 'ISSUED') {
-                                balances[key] -= val;
-                                receivedStatus[key] = true; 
+            // Sort transactions by date to correctly mimic stock.html ledger calculations
+            transactions.sort((a, b) => {
+                let dateA = a.date || '';
+                let dateB = b.date || '';
+                return dateA.localeCompare(dateB);
+            });
+
+            let balances = {};
+            Object.keys(itemDetails).forEach(key => { balances[key] = 0; });
+
+            // Calculate precise running balance for each item exactly like stock.html
+            Object.keys(itemDetails).forEach(itemKey => {
+                const targetName = itemDetails[itemKey];
+                let runningBal = 0;
+
+                transactions.forEach(tx => {
+                    let matchedQty = 0;
+                    if (tx.items && typeof tx.items === 'object') {
+                        Object.keys(tx.items).forEach(k => {
+                            if (isItemMatch(k, itemKey, targetName)) {
+                                matchedQty += Number(tx.items[k]) || 0;
                             }
+                        });
+                    }
+                    if (tx.detailedItems && Array.isArray(tx.detailedItems)) {
+                        tx.detailedItems.forEach(item => {
+                            if (isItemMatch(item.name, itemKey, targetName)) {
+                                matchedQty += Number(item.qty) || 0;
+                            }
+                        });
+                    }
+
+                    if (matchedQty > 0) {
+                        const isIssue = (tx.type === 'ISSUE' || tx.type === 'ISSUED');
+                        if (tx.type === 'RECEIVE') {
+                            runningBal += matchedQty;
+                        } else if (isIssue) {
+                            runningBal -= matchedQty;
                         }
-                    });
-                }
+                    }
+                });
+                balances[itemKey] = runningBal;
             });
 
+            // Update UI with actual stock balances and badge indicators
             Object.keys(itemDetails).forEach(key => {
                 const inputField = document.getElementById(key);
                 const warningSpan = document.getElementById('warn_' + key);
+                const badgeSpan = document.getElementById('badge_' + key);
                 if (!inputField) return;
                 
                 const currentBal = balances[key];
-                const everReceived = receivedStatus[key];
 
-                inputField.value = ''; 
+                if (badgeSpan) {
+                    badgeSpan.innerText = `Balance: ${currentBal}`;
+                }
 
-                if (!everReceived || currentBal <= 0) {
-                    inputField.placeholder = "Stock Nil (0)";
+                if (currentBal <= 0) {
+                    inputField.value = 0;
                     inputField.classList.add('stock-nil');
                     inputField.setAttribute('disabled', 'true');
                     if (warningSpan) {
-                        warningSpan.innerText = !everReceived ? "Never Received / Nil" : `Stock Nil (${currentBal})`;
+                        warningSpan.innerText = `Stock Nil (${currentBal})`;
                         warningSpan.style.display = 'block';
                     }
                 } else {
-                    inputField.placeholder = `Available: ${currentBal}`;
                     inputField.classList.remove('stock-nil');
                     inputField.removeAttribute('disabled');
+                    inputField.placeholder = `Max: ${currentBal}`;
                     if (warningSpan) {
                         warningSpan.style.display = 'none';
                     }
@@ -531,10 +562,7 @@
     }
 
     window.onload = function() {
-        const searchDateEl = document.getElementById('searchDate');
-        if (searchDateEl) {
-            searchDateEl.addEventListener('change', updateVoucherDropdown);
-        }
+        document.getElementById('searchDate').addEventListener('change', updateVoucherDropdown);
     };
 
     async function updateVoucherDropdown() {
@@ -586,7 +614,7 @@
         Object.keys(itemDetails).forEach(key => {
             const inputField = document.getElementById(key);
             if (!inputField) return;
-            const val = (inputField.disabled || !inputField.value) ? 0 : Number(inputField.value);
+            const val = inputField.disabled ? 0 : Number(inputField.value);
             itemsData[key] = val;
             if (val > 0) {
                 issuedSummary.push({ name: itemDetails[key], qty: val });
@@ -721,7 +749,7 @@
         
         doc.setFont("helvetica", "bold");
         doc.setFontSize(10);
-        doc.text("ISSUED BY", 14, currentY);
+        doc.text("ISSUED FORM", 14, currentY);
         doc.text("Taluka Superintendent Of Vaccination", 14, currentY + 5);
         doc.text("Taluka Naushahro Feroze", 14, currentY + 10);
 
