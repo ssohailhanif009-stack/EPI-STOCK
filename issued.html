@@ -23,12 +23,10 @@
             measurementId: "G-ECDS1BK0Y6"
         };
 
-        // Initialize Firebase
         const app = initializeApp(firebaseConfig);
         const analytics = getAnalytics(app);
         const db = getFirestore(app);
 
-        // Global export for use in script functions
         window.db = db;
         window.collection = collection;
         window.addDoc = addDoc;
@@ -36,7 +34,6 @@
         window.query = query;
         window.where = where;
 
-        // Run stock check after Firebase is initialized
         window.addEventListener('DOMContentLoaded', () => {
             if (typeof checkStockBalances === 'function') {
                 checkStockBalances();
@@ -463,15 +460,18 @@
         try {
             const querySnapshot = await window.getDocs(window.collection(window.db, "epi_transactions"));
             let balances = {};
-            Object.keys(itemDetails).forEach(key => { balances[key] = 0; });
+            let receivedStatus = {}; // Tracks if an item was ever received
+            
+            Object.keys(itemDetails).forEach(key => { 
+                balances[key] = 0; 
+                receivedStatus[key] = false; 
+            });
 
-            // Sort documents by date/id properly to ensure exact running balance calculation
             let docsList = [];
             querySnapshot.forEach((doc) => {
                 docsList.push({ id: doc.id, ...doc.data() });
             });
             
-            // Sort by date or fallback to record ID to maintain proper chronology
             docsList.sort((a, b) => {
                 let dateA = new Date(a.date || 0);
                 let dateB = new Date(b.date || 0);
@@ -484,8 +484,12 @@
                     Object.keys(tx.items).forEach(key => {
                         if (balances[key] !== undefined) {
                             const val = Number(tx.items[key]) || 0;
-                            if (tx.type === 'RECEIVE') balances[key] += val;
-                            else if (tx.type === 'ISSUE') balances[key] -= val;
+                            if (tx.type === 'RECEIVE' && val > 0) {
+                                balances[key] += val;
+                                receivedStatus[key] = true; // Mark as received at least once
+                            } else if (tx.type === 'ISSUE') {
+                                balances[key] -= val;
+                            }
                         }
                     });
                 }
@@ -496,14 +500,17 @@
                 const warningSpan = document.getElementById('warn_' + key);
                 if (!inputField) return;
                 const currentBal = balances[key];
+                const everReceived = receivedStatus[key];
 
                 inputField.value = ''; 
-                if (currentBal <= 0) {
-                    inputField.placeholder = "Available: 0";
+
+                // Agar item kabhi receive hi nahi hua (0 received) ya balance 0 ya negative ho gaya hai
+                if (!everReceived || currentBal <= 0) {
+                    inputField.placeholder = "Stock Nil (0)";
                     inputField.classList.add('stock-nil');
                     inputField.setAttribute('disabled', 'true');
                     if (warningSpan) {
-                        warningSpan.innerText = `Stock Nil (${currentBal})`;
+                        warningSpan.innerText = !everReceived ? "Never Received / Nil" : `Stock Nil (${currentBal})`;
                         warningSpan.style.display = 'block';
                     }
                 } else {
