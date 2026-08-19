@@ -266,22 +266,11 @@
                     let matchedQty = 0;
 
                     if (tx.items && typeof tx.items === 'object') {
-                        let itemList = Array.isArray(tx.items) ? tx.items : Object.values(tx.items);
-                        itemList.forEach(item => {
-                            if (typeof item === 'object' && item !== null) {
-                                if (isExactMatch(item.name, selectedItemKey, targetItemName)) {
-                                    matchedQty += Number(item.qty) || 0;
-                                }
+                        Object.keys(tx.items).forEach(key => {
+                            if (isExactMatch(key, selectedItemKey, targetItemName)) {
+                                matchedQty += Number(tx.items[key]) || 0;
                             }
                         });
-                        
-                        if (matchedQty === 0 && !Array.isArray(tx.items)) {
-                            Object.keys(tx.items).forEach(key => {
-                                if (isExactMatch(key, selectedItemKey, targetItemName)) {
-                                    matchedQty += Number(tx.items[key]) || 0;
-                                }
-                            });
-                        }
                     } else if (tx.detailedItems && Array.isArray(tx.detailedItems)) {
                         tx.detailedItems.forEach(item => {
                             if (item && item.name && isExactMatch(item.name, selectedItemKey, targetItemName)) {
@@ -307,47 +296,24 @@
                 let runningBalance = 0;
                 let rowCount = 0;
 
-                // Second pass: Render rows securely with company & batch extraction
+                // Second pass: Render rows securely
                 transactions.forEach(tx => {
                     let matchedQty = 0;
-                    let companyBatchInfo = [];
+                    let companyBatchInfo = '-';
 
-                    if (tx.items && typeof tx.items === 'object') {
-                        let itemList = Array.isArray(tx.items) ? tx.items : Object.values(tx.items);
-                        
-                        itemList.forEach(item => {
-                            if (typeof item === 'object' && item !== null) {
-                                if (isExactMatch(item.name, selectedItemKey, targetItemName)) {
-                                    matchedQty += Number(item.qty) || 0;
-                                    let comp = item.company || item.manufacturer || tx.company || '';
-                                    let batch = item.batchNo || item.batchNumber || item.batch || tx.batchNo || '';
-                                    let details = `${comp} ${batch ? '(Batch: ' + batch + ')' : ''}`.trim();
-                                    if (details) companyBatchInfo.push(details);
-                                }
-                            }
-                        });
-
-                        // Fallback for key-value items format
-                        if (matchedQty === 0 && !Array.isArray(tx.items)) {
-                            Object.keys(tx.items).forEach(key => {
-                                if (isExactMatch(key, selectedItemKey, targetItemName)) {
-                                    matchedQty += Number(tx.items[key]) || 0;
-                                }
-                            });
-                            let comp = tx.company || tx.manufacturer || '';
-                            let batch = tx.batchNo || tx.batchNumber || tx.batch || '';
-                            if (comp || batch) {
-                                companyBatchInfo.push(`${comp} ${batch ? '(Batch: ' + batch + ')' : ''}`.trim());
-                            }
-                        }
-                    } else if (tx.detailedItems && Array.isArray(tx.detailedItems)) {
+                    if (tx.detailedItems && Array.isArray(tx.detailedItems)) {
                         tx.detailedItems.forEach(item => {
                             if (item && item.name && isExactMatch(item.name, selectedItemKey, targetItemName)) {
                                 matchedQty += Number(item.qty) || 0;
-                                let comp = item.company || item.manufacturer || tx.company || tx.manufacturer || '';
-                                let batch = item.batchNo || item.batchNumber || item.batch || tx.batchNo || tx.batchNumber || '';
-                                let details = `${comp} ${batch ? '(Batch: ' + batch + ')' : ''}`.trim();
-                                if (details) companyBatchInfo.push(details);
+                                if (item.company && item.company !== '-') {
+                                    companyBatchInfo = item.company;
+                                }
+                            }
+                        });
+                    } else if (tx.items && typeof tx.items === 'object') {
+                        Object.keys(tx.items).forEach(key => {
+                            if (isExactMatch(key, selectedItemKey, targetItemName)) {
+                                matchedQty += Number(tx.items[key]) || 0;
                             }
                         });
                     }
@@ -367,22 +333,13 @@
                         runningBalance -= matchedQty;
                     }
 
-                    let displayCompanyBatch = '-';
-                    if (companyBatchInfo.length > 0) {
-                        displayCompanyBatch = companyBatchInfo.join(', ');
-                    } else if (tx.company || tx.batchNo || tx.batch) {
-                        let c = tx.company || '';
-                        let b = tx.batchNo || tx.batch || '';
-                        displayCompanyBatch = `${c} ${b ? '(Batch: ' + b + ')' : ''}`.trim();
-                    }
-
                     rowCount++;
                     const tr = document.createElement('tr');
                     tr.innerHTML = `
                         <td>${tx.dateTime || (tx.date + ' ' + (tx.time || ''))}</td>
                         <td><b>${tx.type === 'RECEIVE' ? 'Stock Received' : (tx.vaccinatorName || tx.issuedTo || 'Issued Record')}</b></td>
                         <td>${tx.type === 'RECEIVE' ? 'Main Store / HQ' : (tx.epiCenter || '-')}</td>
-                        <td>${displayCompanyBatch}</td>
+                        <td><b>${companyBatchInfo}</b></td>
                         <td><b style="color: ${tx.type === 'RECEIVE' ? '#2e7d32' : 'inherit'};">${tx.type === 'RECEIVE' ? matchedQty : '-'}</b></td>
                         <td><b style="color: ${isIssue ? '#c62828' : 'inherit'};">${isIssue ? matchedQty : '-'}</b></td>
                         <td style="background-color: #f1f5f9; font-weight: bold; color: ${runningBalance < 0 ? 'red' : '#0f4c5c'}">${runningBalance}</td>
