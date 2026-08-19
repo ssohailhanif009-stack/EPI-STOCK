@@ -213,7 +213,6 @@
             'r_monthlyrep': 'EPI Monthly Report', 'r_aefibook': 'AEFI Book', 'r_zerobook': 'Zero Weekly Surveillance Book', 'r_vpdbook': 'VPD Weekly Reporting Book'
         };
 
-        // Strict and exact matching to prevent double counting
         function isExactMatch(dbItemName, selectedKey, targetName) {
             if (!dbItemName) return false;
             const cleanDb = String(dbItemName).trim().toLowerCase();
@@ -221,6 +220,19 @@
             const cleanTarget = String(targetName).trim().toLowerCase();
 
             return cleanDb === cleanKey || cleanDb === cleanTarget;
+        }
+
+        // Helper function to extract company and batch from any object
+        function extractCompanyAndBatch(obj) {
+            if (!obj || typeof obj !== 'object') return { company: '', batch: '' };
+
+            let comp = obj.company || obj.companyName || obj.company_name || obj.manufacturer || obj.mfg || obj.supplier || obj.brand || '';
+            let batch = obj.batch || obj.batchNo || obj.batchNumber || obj.batch_no || obj.batch_number || obj.bNo || obj.lot || obj.lotNo || obj.lotNumber || '';
+
+            return {
+                company: String(comp).trim(),
+                batch: String(batch).trim()
+            };
         }
 
         async function loadLedger() {
@@ -261,7 +273,7 @@
                 let totalReceived = 0;
                 let totalIssued = 0;
 
-                // First pass: Calculate totals securely without duplication
+                // First pass: Calculate totals securely
                 transactions.forEach(tx => {
                     let matchedQty = 0;
 
@@ -269,13 +281,13 @@
                         Object.keys(tx.items).forEach(key => {
                             if (isExactMatch(key, selectedItemKey, targetItemName)) {
                                 const val = tx.items[key];
-                                matchedQty += Number(typeof val === 'object' ? val.qty : val) || 0;
+                                matchedQty += Number(typeof val === 'object' && val !== null ? (val.qty || val.quantity || val.amount || 0) : val) || 0;
                             }
                         });
                     } else if (tx.detailedItems && Array.isArray(tx.detailedItems)) {
                         tx.detailedItems.forEach(item => {
                             if (item && item.name && isExactMatch(item.name, selectedItemKey, targetItemName)) {
-                                matchedQty += Number(item.qty) || 0;
+                                matchedQty += Number(item.qty || item.quantity || item.amount || 0) || 0;
                             }
                         });
                     }
@@ -302,21 +314,23 @@
                     let matchedQty = 0;
                     let companyBatchInfo = [];
 
+                    // Extract global/transaction-level company and batch as fallback
+                    let globalCB = extractCompanyAndBatch(tx);
+
                     if (tx.items && typeof tx.items === 'object') {
                         Object.keys(tx.items).forEach(key => {
                             if (isExactMatch(key, selectedItemKey, targetItemName)) {
                                 const val = tx.items[key];
                                 if (typeof val === 'object' && val !== null) {
-                                    matchedQty += Number(val.qty) || 0;
-                                    let comp = val.company || val.manufacturer || tx.company || tx.manufacturer || '';
-                                    let batch = val.batchNo || val.batchNumber || val.batch || tx.batchNo || tx.batchNumber || tx.batch || '';
+                                    matchedQty += Number(val.qty || val.quantity || val.amount || 0) || 0;
+                                    let itemCB = extractCompanyAndBatch(val);
+                                    let comp = itemCB.company || globalCB.company;
+                                    let batch = itemCB.batch || globalCB.batch;
                                     let details = `${comp} ${batch ? '(Batch: ' + batch + ')' : ''}`.trim();
                                     if (details) companyBatchInfo.push(details);
                                 } else {
                                     matchedQty += Number(val) || 0;
-                                    let comp = tx.company || tx.manufacturer || '';
-                                    let batch = tx.batchNo || tx.batchNumber || tx.batch || '';
-                                    let details = `${comp} ${batch ? '(Batch: ' + batch + ')' : ''}`.trim();
+                                    let details = `${globalCB.company} ${globalCB.batch ? '(Batch: ' + globalCB.batch + ')' : ''}`.trim();
                                     if (details) companyBatchInfo.push(details);
                                 }
                             }
@@ -324,9 +338,10 @@
                     } else if (tx.detailedItems && Array.isArray(tx.detailedItems)) {
                         tx.detailedItems.forEach(item => {
                             if (item && item.name && isExactMatch(item.name, selectedItemKey, targetItemName)) {
-                                matchedQty += Number(item.qty) || 0;
-                                let comp = item.company || item.manufacturer || tx.company || tx.manufacturer || '';
-                                let batch = item.batchNo || item.batchNumber || item.batch || tx.batchNo || tx.batchNumber || tx.batch || '';
+                                matchedQty += Number(item.qty || item.quantity || item.amount || 0) || 0;
+                                let itemCB = extractCompanyAndBatch(item);
+                                let comp = itemCB.company || globalCB.company;
+                                let batch = itemCB.batch || globalCB.batch;
                                 let details = `${comp} ${batch ? '(Batch: ' + batch + ')' : ''}`.trim();
                                 if (details) companyBatchInfo.push(details);
                             }
@@ -350,7 +365,8 @@
 
                     let displayCompanyBatch = '-';
                     if (tx.type === 'RECEIVE') {
-                        displayCompanyBatch = companyBatchInfo.length > 0 ? companyBatchInfo.filter(Boolean).join(', ') : '-';
+                        let uniqueDetails = [...new Set(companyBatchInfo.filter(Boolean))];
+                        displayCompanyBatch = uniqueDetails.length > 0 ? uniqueDetails.join(', ') : '-';
                     }
 
                     rowCount++;
