@@ -322,8 +322,18 @@
                         tx.detailedItems.forEach(item => {
                             if (item && item.name && isExactMatch(item.name, selectedItemKey, targetItemName)) {
                                 matchedQty += Number(item.qty) || 0;
-                                if (item.company && item.company !== '-') {
-                                    companyBatchInfo = item.company;
+                                
+                                let companyStr = (item.company && item.company !== '-') ? item.company : '';
+                                let expiryStr = (item.expiry && item.expiry !== '-') ? `Exp: ${item.expiry}` : '';
+                                
+                                if (companyStr && expiryStr) {
+                                    companyBatchInfo = `${companyStr} | ${expiryStr}`;
+                                } else if (companyStr) {
+                                    companyBatchInfo = companyStr;
+                                } else if (expiryStr) {
+                                    companyBatchInfo = expiryStr;
+                                } else {
+                                    companyBatchInfo = '-';
                                 }
                             }
                         });
