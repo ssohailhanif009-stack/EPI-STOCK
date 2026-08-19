@@ -234,19 +234,6 @@
         .nav-links a:hover {
             text-decoration: underline;
         }
-        .date-input-wrapper {
-            display: flex;
-            gap: 5px;
-            align-items: center;
-        }
-        .date-input-wrapper input[type="text"] {
-            flex: 1;
-        }
-        .date-input-wrapper input[type="date"] {
-            width: 42px;
-            padding: 6px;
-            cursor: pointer;
-        }
     </style>
 </head>
 <body>
@@ -295,11 +282,8 @@
                 <div class="section-title">General Information</div>
                 <div class="form-grid">
                     <div class="form-group">
-                        <label>Select Date (Calendar / Manual)</label>
-                        <div class="date-input-wrapper">
-                            <input type="text" id="issueDate" placeholder="YYYY-MM-DD or DD/MM/YYYY" required>
-                            <input type="date" id="calendarPicker" title="Pick from Calendar" onchange="syncCalendarToText(this.value)">
-                        </div>
+                        <label>Select Date (DD/MM/YYYY Calendar)</label>
+                        <input type="date" id="issueDate" required>
                     </div>
                     <div class="form-group">
                         <label>Time (12-Hour Format - Auto)</label>
@@ -456,12 +440,6 @@
 </div>
 
 <script>
-    function syncCalendarToText(val) {
-        if(val) {
-            document.getElementById('issueDate').value = val;
-        }
-    }
-
     const itemDetails = {
         'v_opv': 'OPV', 'v_hepb': 'HEP-B', 'v_bcg': 'BCG', 'v_bcg_dil': 'BCG Diluent', 'v_penta': 'Pentavalent', 'v_penta10': 'Pentavalent-10 doses',
         'v_pcv13': 'PCV-13', 'v_rota': 'Rotavirus', 'v_ipv': 'IPV', 'v_mr': 'Measles-Rubella', 'v_mr_dil': 'MR-Diluent', 'v_mr05': 'Measles-Rubella 05 doses', 'v_mr05_dil': 'MR-Diluent 05 doses',
