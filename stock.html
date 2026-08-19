@@ -232,7 +232,7 @@
 
             const tbody = document.getElementById('ledgerTableBody');
             const balanceAlert = document.getElementById('balanceAlert');
-            tbody.innerHTML = `<tr><td colspan="6" style="padding: 20px; color: #777;">Loading data from Firebase...</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="7" style="padding: 20px; color: #777;">Loading data from Firebase...</td></tr>`;
             balanceAlert.style.display = 'none';
 
             try {
@@ -299,6 +299,7 @@
                 // Second pass: Render rows securely
                 transactions.forEach(tx => {
                     let matchedQty = 0;
+                    let companyBatchInfo = [];
 
                     if (tx.items && typeof tx.items === 'object') {
                         Object.keys(tx.items).forEach(key => {
@@ -306,10 +307,20 @@
                                 matchedQty += Number(tx.items[key]) || 0;
                             }
                         });
+                        // Global batch and company details if present on tx level
+                        let comp = tx.company || tx.manufacturer || '';
+                        let batch = tx.batchNo || tx.batchNumber || tx.batch || '';
+                        if (comp || batch) {
+                            companyBatchInfo.push(`${comp} ${batch ? '(Batch: ' + batch + ')' : ''}`.trim());
+                        }
                     } else if (tx.detailedItems && Array.isArray(tx.detailedItems)) {
                         tx.detailedItems.forEach(item => {
                             if (item && item.name && isExactMatch(item.name, selectedItemKey, targetItemName)) {
                                 matchedQty += Number(item.qty) || 0;
+                                let comp = item.company || item.manufacturer || tx.company || tx.manufacturer || '';
+                                let batch = item.batchNo || item.batchNumber || item.batch || tx.batchNo || tx.batchNumber || '';
+                                let details = `${comp} ${batch ? '(Batch: ' + batch + ')' : ''}`.trim();
+                                if (details) companyBatchInfo.push(details);
                             }
                         });
                     }
@@ -329,12 +340,18 @@
                         runningBalance -= matchedQty;
                     }
 
+                    let displayCompanyBatch = '-';
+                    if (tx.type === 'RECEIVE') {
+                        displayCompanyBatch = companyBatchInfo.length > 0 ? companyBatchInfo.join(', ') : '-';
+                    }
+
                     rowCount++;
                     const tr = document.createElement('tr');
                     tr.innerHTML = `
                         <td>${tx.dateTime || (tx.date + ' ' + (tx.time || ''))}</td>
                         <td><b>${tx.type === 'RECEIVE' ? 'Stock Received' : (tx.vaccinatorName || tx.issuedTo || 'Issued Record')}</b></td>
                         <td>${tx.type === 'RECEIVE' ? 'Main Store / HQ' : (tx.epiCenter || '-')}</td>
+                        <td>${displayCompanyBatch}</td>
                         <td><b style="color: ${tx.type === 'RECEIVE' ? '#2e7d32' : 'inherit'};">${tx.type === 'RECEIVE' ? matchedQty : '-'}</b></td>
                         <td><b style="color: ${isIssue ? '#c62828' : 'inherit'};">${isIssue ? matchedQty : '-'}</b></td>
                         <td style="background-color: #f1f5f9; font-weight: bold; color: ${runningBalance < 0 ? 'red' : '#0f4c5c'}">${runningBalance}</td>
@@ -343,12 +360,12 @@
                 });
 
                 if (rowCount === 0) {
-                    tbody.innerHTML = `<tr><td colspan="6" style="padding: 20px; color: #777;">No records found matching the selected criteria.</td></tr>`;
+                    tbody.innerHTML = `<tr><td colspan="7" style="padding: 20px; color: #777;">No records found matching the selected criteria.</td></tr>`;
                 }
 
             } catch (error) {
                 console.error("Error fetching data from Firebase: ", error);
-                tbody.innerHTML = `<tr><td colspan="6" style="padding: 20px; color: red;">Error loading data from Firebase. Check console for details.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="7" style="padding: 20px; color: red;">Error loading data from Firebase. Check console for details.</td></tr>`;
             }
         }
 
@@ -388,7 +405,7 @@
                 startY: 32,
                 theme: 'grid',
                 headStyles: { fillColor: [15, 76, 92] },
-                styles: { fontSize: 9, cellPadding: 4 }
+                styles: { fontSize: 8, cellPadding: 3 }
             });
 
             doc.save(`EPI_Stock_Book_${itemName}.pdf`);
@@ -548,6 +565,7 @@
                     <th>Date & Time</th>
                     <th>Name / Details</th>
                     <th>EPI Center</th>
+                    <th>Company & Batch No.</th>
                     <th>Receive</th>
                     <th>Issue</th>
                     <th>Closing Balance</th>
