@@ -213,6 +213,20 @@
             'r_monthlyrep': 'EPI Monthly Report', 'r_aefibook': 'AEFI Book', 'r_zerobook': 'Zero Weekly Surveillance Book', 'r_vpdbook': 'VPD Weekly Reporting Book'
         };
 
+        // Helper Function: Format Date to DD-MM-YYYY
+        function formatDateToDMY(rawDateTime, rawDate) {
+            let dateStr = rawDateTime || rawDate || '';
+            if (!dateStr) return '-';
+
+            // Match YYYY-MM-DD pattern
+            let match = dateStr.match(/(\d{4})-(\d{2})-(\d{2})/);
+            if (match) {
+                let formatted = `${match[3]}-${match[2]}-${match[1]}`;
+                return dateStr.replace(match[0], formatted);
+            }
+            return dateStr;
+        }
+
         // Strict and exact matching to prevent double counting
         function isExactMatch(dbItemName, selectedKey, targetName) {
             if (!dbItemName) return false;
@@ -225,6 +239,9 @@
 
         async function loadLedger() {
             const selectedItemKey = document.getElementById('filterItem').value;
+            // Save selected item to localStorage to maintain state after refresh
+            localStorage.setItem('selectedEpiItem', selectedItemKey);
+
             const targetItemName = itemNamesMap[selectedItemKey] || selectedItemKey;
             const filterCenter = document.getElementById('filterCenter').value;
             const fromDate = document.getElementById('filterFromDate').value;
@@ -334,9 +351,11 @@
                     }
 
                     rowCount++;
+                    const formattedDate = formatDateToDMY(tx.dateTime, tx.date + ' ' + (tx.time || ''));
+
                     const tr = document.createElement('tr');
                     tr.innerHTML = `
-                        <td>${tx.dateTime || (tx.date + ' ' + (tx.time || ''))}</td>
+                        <td>${formattedDate}</td>
                         <td><b>${tx.type === 'RECEIVE' ? 'Stock Received' : (tx.vaccinatorName || tx.issuedTo || 'Issued Record')}</b></td>
                         <td>${tx.type === 'RECEIVE' ? 'Main Store / HQ' : (tx.epiCenter || '-')}</td>
                         <td><b>${companyBatchInfo}</b></td>
@@ -366,6 +385,7 @@
             document.getElementById('filterToDate').value = '';
             document.getElementById('filterCenter').value = '';
             document.getElementById('filterItem').value = 'v_bcg';
+            localStorage.setItem('selectedEpiItem', 'v_bcg');
             loadLedger();
         }
 
@@ -404,6 +424,11 @@
         window.downloadPDF = downloadPDF;
 
         window.onload = () => {
+            // Restore previously selected item from localStorage on refresh
+            const savedItem = localStorage.getItem('selectedEpiItem');
+            if (savedItem) {
+                document.getElementById('filterItem').value = savedItem;
+            }
             loadLedger();
         };
     </script>
