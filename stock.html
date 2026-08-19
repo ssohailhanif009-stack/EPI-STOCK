@@ -249,7 +249,7 @@
 
             const tbody = document.getElementById('ledgerTableBody');
             const balanceAlert = document.getElementById('balanceAlert');
-            tbody.innerHTML = `<tr><td colspan="7" style="padding: 20px; color: #777;">Loading data from Firebase...</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="8" style="padding: 20px; color: #777;">Loading data from Firebase...</td></tr>`;
             balanceAlert.style.display = 'none';
 
             try {
@@ -317,6 +317,7 @@
                 transactions.forEach(tx => {
                     let matchedQty = 0;
                     let companyBatchInfo = '-';
+                    let expiryInfo = '-';
 
                     if (tx.detailedItems && Array.isArray(tx.detailedItems)) {
                         tx.detailedItems.forEach(item => {
@@ -324,16 +325,23 @@
                                 matchedQty += Number(item.qty) || 0;
                                 
                                 let companyStr = (item.company && item.company !== '-') ? item.company : '';
-                                let expiryStr = (item.expiry && item.expiry !== '-') ? `Exp: ${item.expiry}` : '';
+                                let batchStr = (item.batch && item.batch !== '-') ? item.batch : '';
+                                let expStr = (item.expiry && item.expiry !== '-') ? item.expiry : '';
                                 
-                                if (companyStr && expiryStr) {
-                                    companyBatchInfo = `${companyStr} | ${expiryStr}`;
+                                // Format Company & Batch info
+                                if (companyStr && batchStr) {
+                                    companyBatchInfo = `${companyStr} (${batchStr})`;
                                 } else if (companyStr) {
                                     companyBatchInfo = companyStr;
-                                } else if (expiryStr) {
-                                    companyBatchInfo = expiryStr;
+                                } else if (batchStr) {
+                                    companyBatchInfo = batchStr;
                                 } else {
                                     companyBatchInfo = '-';
+                                }
+
+                                // Separate Expiry info
+                                if (expStr) {
+                                    expiryInfo = formatDateToDMY(expStr, expStr);
                                 }
                             }
                         });
@@ -369,6 +377,7 @@
                         <td><b>${tx.type === 'RECEIVE' ? 'Stock Received' : (tx.vaccinatorName || tx.issuedTo || 'Issued Record')}</b></td>
                         <td>${tx.type === 'RECEIVE' ? 'Main Store / HQ' : (tx.epiCenter || '-')}</td>
                         <td><b>${companyBatchInfo}</b></td>
+                        <td><b>${expiryInfo}</b></td>
                         <td><b style="color: ${tx.type === 'RECEIVE' ? '#2e7d32' : 'inherit'};">${tx.type === 'RECEIVE' ? matchedQty : '-'}</b></td>
                         <td><b style="color: ${isIssue ? '#c62828' : 'inherit'};">${isIssue ? matchedQty : '-'}</b></td>
                         <td style="background-color: #f1f5f9; font-weight: bold; color: ${runningBalance < 0 ? 'red' : '#0f4c5c'}">${runningBalance}</td>
@@ -377,12 +386,12 @@
                 });
 
                 if (rowCount === 0) {
-                    tbody.innerHTML = `<tr><td colspan="7" style="padding: 20px; color: #777;">No records found matching the selected criteria.</td></tr>`;
+                    tbody.innerHTML = `<tr><td colspan="8" style="padding: 20px; color: #777;">No records found matching the selected criteria.</td></tr>`;
                 }
 
             } catch (error) {
                 console.error("Error fetching data from Firebase: ", error);
-                tbody.innerHTML = `<tr><td colspan="7" style="padding: 20px; color: red;">Error loading data from Firebase. Check console for details.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="8" style="padding: 20px; color: red;">Error loading data from Firebase. Check console for details.</td></tr>`;
             }
         }
 
@@ -589,6 +598,7 @@
                     <th>Name / Details</th>
                     <th>EPI Center</th>
                     <th>Company & Batch No.</th>
+                    <th>Expiry Date</th>
                     <th>Receive</th>
                     <th>Issue</th>
                     <th>Closing Balance</th>
