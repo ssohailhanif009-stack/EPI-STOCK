@@ -218,7 +218,6 @@
             let dateStr = rawDateTime || rawDate || '';
             if (!dateStr) return '-';
 
-            // Match YYYY-MM-DD pattern
             let match = dateStr.match(/(\d{4})-(\d{2})-(\d{2})/);
             if (match) {
                 let formatted = `${match[3]}-${match[2]}-${match[1]}`;
@@ -239,7 +238,6 @@
 
         async function loadLedger() {
             const selectedItemKey = document.getElementById('filterItem').value;
-            // Save selected item to localStorage to maintain state after refresh
             localStorage.setItem('selectedEpiItem', selectedItemKey);
 
             const targetItemName = itemNamesMap[selectedItemKey] || selectedItemKey;
@@ -266,7 +264,7 @@
                     transactions.push(txData);
                 });
 
-                // Sort transactions by date and time sequence
+                // Sort transactions chronologically
                 transactions.sort((a, b) => {
                     let dateA = (a.date || '') + (a.time || '');
                     let dateB = (b.date || '') + (b.time || '');
@@ -278,7 +276,7 @@
                 let totalReceived = 0;
                 let totalIssued = 0;
 
-                // First pass: Calculate totals securely without duplication
+                // First pass: Overall stock calculate karna
                 transactions.forEach(tx => {
                     let matchedQty = 0;
 
@@ -306,14 +304,13 @@
                 });
 
                 const currentBalance = totalReceived - totalIssued;
-
                 balanceAlert.style.display = 'block';
                 balanceAlert.innerText = 'Current Available Stock Balance: ' + currentBalance;
 
                 let runningBalance = 0;
                 let rowCount = 0;
 
-                // Second pass: Render rows securely
+                // Chronologically process transactions and calculate running balance correctly
                 transactions.forEach(tx => {
                     let matchedQty = 0;
                     let companyBatchInfo = '-';
@@ -328,7 +325,6 @@
                                 let batchStr = (item.batch && item.batch !== '-') ? item.batch : '';
                                 let expStr = (item.expiry && item.expiry !== '-') ? item.expiry : '';
                                 
-                                // Format Company & Batch info
                                 if (companyStr && batchStr) {
                                     companyBatchInfo = `${companyStr} (${batchStr})`;
                                 } else if (companyStr) {
@@ -339,7 +335,6 @@
                                     companyBatchInfo = '-';
                                 }
 
-                                // Separate Expiry info
                                 if (expStr) {
                                     expiryInfo = formatDateToDMY(expStr, expStr);
                                 }
@@ -357,16 +352,19 @@
 
                     const isIssue = (tx.type === 'ISSUE' || tx.type === 'ISSUED');
 
-                    // Apply filters
+                    // Filter Center Check
                     if (filterCenter && isIssue && tx.epiCenter && tx.epiCenter !== filterCenter) return;
-                    if (fromDate && tx.date && tx.date < fromDate) return;
-                    if (toDate && tx.date && tx.date > toDate) return;
 
+                    // Pehle Balance Update Karein Shuruat Se Le Kr Tab Tak Ka
                     if (tx.type === 'RECEIVE') {
                         runningBalance += matchedQty;
                     } else if (isIssue) {
                         runningBalance -= matchedQty;
                     }
+
+                    // Ab Check Karein Ke Kya Yeh Entry Selected Date Range Mein Ati Hai?
+                    if (fromDate && tx.date && tx.date < fromDate) return;
+                    if (toDate && tx.date && tx.date > toDate) return;
 
                     rowCount++;
                     const formattedDate = formatDateToDMY(tx.dateTime, tx.date + ' ' + (tx.time || ''));
@@ -443,7 +441,6 @@
         window.downloadPDF = downloadPDF;
 
         window.onload = () => {
-            // Restore previously selected item from localStorage on refresh
             const savedItem = localStorage.getItem('selectedEpiItem');
             if (savedItem) {
                 document.getElementById('filterItem').value = savedItem;
