@@ -1011,7 +1011,7 @@
             'TCV': 'v_tcv', 'TD': 'v_td', 'HPV': 'v_hpv', 'Panadol-Drops': 'v_panadol',
             '0.05 ml Syringes': 'l_005s', '0.5 ml Syringes': 'l_05s', '2 ml Syringes': 'l_2s', '5 ml Syringes': 'l_5s', 'Safety Box': 'l_safety',
             'Droppers': 'l_droppers', 'Vaccine Carrier': 'l_vac_carrier', 'Vaccination Card': 'l_card', 'QR-Code': 'l_qrcode', 'Fridge-Tag 2 Device': 'l_fridgetag',
-            'ILR': 'l_ilr', 'Stablizer': 'l_stablizer',
+            'ILR': 'l_ilr', 'Stablizer': 'l_stablizer', 'Stabilizer': 'l_stablizer',
             'NID/ Oral Polio Vaccine': 'camp_nid', 'HPV (Campaign)': 'camp_hpv', 'Measles-Rubella (Campaign)': 'camp_mr', 'MR-Diluent (Campaign)': 'camp_mrdil', 'TCV (Campaign)': 'camp_tcv',
             'Finger Markers': 'camp_markers', 'Scissor': 'camp_scissor', 'Mobile Tally Sheet': 'camp_mobtally', 'Roming Tally Sheet': 'camp_romtally',
             'Fixed Tally Sheet': 'camp_fixtally', 'UCMO Form': 'camp_ucmo', 'Area Incharge Form': 'camp_areainc', 'Zero Dose Form': 'camp_zerodose',
@@ -1057,7 +1057,7 @@
             
             cards.forEach(card => {
                 let itemName = card.getAttribute('data-name');
-                let qtyInput = card.querySelector('.item-qty') || card.querySelector('input[type="number"]');
+                let qtyInput = card.querySelector('.item-qty');
                 let dosesInput = card.querySelector('.item-doses-input') || card.querySelector('.item-doses-select');
                 let companyInput = card.querySelector('.item-company');
                 let expiryInput = card.querySelector('.item-expiry');
