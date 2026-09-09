@@ -683,6 +683,7 @@
                         </div>
                     </div>
                     
+                    <!-- ILR -->
                     <div class="item-card" data-name="ILR">
                         <div class="item-title">ILR</div>
                         <div class="item-subfields">
@@ -699,12 +700,12 @@
                         </div>
                     </div>
 
+                    <!-- Stablizer Updated -->
                     <div class="item-card" data-name="Stablizer">
                         <div class="item-title">Stablizer</div>
                         <div class="item-subfields">
                             <div><label>Quantity</label><input type="number" min="0" value="0" class="item-qty" id="rec_l_stablizer"></div>
-                            <div><label>Company Name</label><input type="text" placeholder="Optional" class="item-company"></div>
-                            <div><label>Model No.</label><input type="text" placeholder="Optional" class="item-model"></div>
+                            <div><label>Company and Model No.</label><input type="text" placeholder="Optional" class="item-company"></div>
                             <div><label>Type (Optional)</label>
                                 <select class="item-type">
                                     <option value="">-- Select Type --</option>
@@ -1011,7 +1012,7 @@
             'TCV': 'v_tcv', 'TD': 'v_td', 'HPV': 'v_hpv', 'Panadol-Drops': 'v_panadol',
             '0.05 ml Syringes': 'l_005s', '0.5 ml Syringes': 'l_05s', '2 ml Syringes': 'l_2s', '5 ml Syringes': 'l_5s', 'Safety Box': 'l_safety',
             'Droppers': 'l_droppers', 'Vaccine Carrier': 'l_vac_carrier', 'Vaccination Card': 'l_card', 'QR-Code': 'l_qrcode', 'Fridge-Tag 2 Device': 'l_fridgetag',
-            'ILR': 'l_ilr', 'Stablizer': 'l_stablizer', 'Stabilizer': 'l_stablizer',
+            'ILR': 'l_ilr', 'Stablizer': 'l_stablizer',
             'NID/ Oral Polio Vaccine': 'camp_nid', 'HPV (Campaign)': 'camp_hpv', 'Measles-Rubella (Campaign)': 'camp_mr', 'MR-Diluent (Campaign)': 'camp_mrdil', 'TCV (Campaign)': 'camp_tcv',
             'Finger Markers': 'camp_markers', 'Scissor': 'camp_scissor', 'Mobile Tally Sheet': 'camp_mobtally', 'Roming Tally Sheet': 'camp_romtally',
             'Fixed Tally Sheet': 'camp_fixtally', 'UCMO Form': 'camp_ucmo', 'Area Incharge Form': 'camp_areainc', 'Zero Dose Form': 'camp_zerodose',
@@ -1157,6 +1158,31 @@
             let aggregatedItems = {};
 
             filteredRecords.forEach(record => {
+                // Direct Mapping support for Items
+                if (record.items) {
+                    Object.keys(mappingKeys).forEach(itemName => {
+                        let mappedKey = mappingKeys[itemName];
+                        if (record.items[mappedKey] !== undefined) {
+                            if (selectedReportItem !== "" && itemName !== selectedReportItem) {
+                                return;
+                            }
+                            if (!aggregatedItems[itemName]) {
+                                aggregatedItems[itemName] = {
+                                    name: itemName,
+                                    totalQty: 0,
+                                    doses: "N/A",
+                                    company: "-",
+                                    expiry: "-",
+                                    model: "-",
+                                    type: "-"
+                                };
+                            }
+                            aggregatedItems[itemName].totalQty += parseFloat(record.items[mappedKey]) || 0;
+                        }
+                    });
+                }
+
+                // Detailed Items mapping override (if available)
                 if (record.detailedItems) {
                     record.detailedItems.forEach(item => {
                         if(selectedReportItem !== "" && item.name !== selectedReportItem) {
@@ -1173,8 +1199,15 @@
                                 model: item.model || "-",
                                 type: item.type || "-"
                             };
+                            aggregatedItems[item.name].totalQty = parseFloat(item.qty) || 0;
+                        } else {
+                            // Update details if they were empty
+                            if (aggregatedItems[item.name].doses === "N/A") aggregatedItems[item.name].doses = item.doses;
+                            if (aggregatedItems[item.name].company === "-") aggregatedItems[item.name].company = item.company;
+                            if (aggregatedItems[item.name].expiry === "-") aggregatedItems[item.name].expiry = item.expiry;
+                            if (aggregatedItems[item.name].model === "-") aggregatedItems[item.name].model = item.model || "-";
+                            if (aggregatedItems[item.name].type === "-") aggregatedItems[item.name].type = item.type || "-";
                         }
-                        aggregatedItems[item.name].totalQty += parseFloat(item.qty) || 0;
                     });
                 }
             });
