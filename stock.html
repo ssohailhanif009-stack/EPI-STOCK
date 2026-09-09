@@ -243,8 +243,8 @@
 
             const targetItemName = itemNamesMap[selectedItemKey] || selectedItemKey;
             const filterCenter = document.getElementById('filterCenter').value;
-            const fromDate = document.getElementById('filterFromDate').value;
-            const toDate = document.getElementById('filterToDate').value;
+            const selectedMonth = document.getElementById('filterMonth').value;
+            const selectedYear = document.getElementById('filterYear').value;
 
             const tbody = document.getElementById('ledgerTableBody');
             const balanceAlert = document.getElementById('balanceAlert');
@@ -363,9 +363,17 @@
                         runningBalance -= matchedQty;
                     }
 
-                    // Ab Check Karein Ke Kya Yeh Entry Selected Date Range Mein Ati Hai?
-                    if (fromDate && tx.date && tx.date < fromDate) return;
-                    if (toDate && tx.date && tx.date > toDate) return;
+                    // Selected Month aur Year Filter Check
+                    if (tx.date) {
+                        let dateParts = tx.date.split('-'); // Format: YYYY-MM-DD
+                        if (dateParts.length === 3) {
+                            let txYear = dateParts[0];
+                            let txMonth = dateParts[1];
+
+                            if (selectedYear && txYear !== selectedYear) return;
+                            if (selectedMonth && txMonth !== selectedMonth) return;
+                        }
+                    }
 
                     rowCount++;
                     const formattedDate = formatDateToDMY(tx.dateTime, tx.date + ' ' + (tx.time || ''));
@@ -398,9 +406,21 @@
             loadLedger();
         }
 
+        function populateYears() {
+            const yearSelect = document.getElementById('filterYear');
+            const currentYear = new Date().getFullYear();
+            yearSelect.innerHTML = '<option value="">All Years</option>';
+            for (let y = currentYear; y >= 2020; y--) {
+                const opt = document.createElement('option');
+                opt.value = String(y);
+                opt.textContent = y;
+                yearSelect.appendChild(opt);
+            }
+        }
+
         function resetFilters() {
-            document.getElementById('filterFromDate').value = '';
-            document.getElementById('filterToDate').value = '';
+            document.getElementById('filterMonth').value = '';
+            document.getElementById('filterYear').value = '';
             document.getElementById('filterCenter').value = '';
             document.getElementById('filterItem').value = 'v_bcg';
             localStorage.setItem('selectedEpiItem', 'v_bcg');
@@ -442,6 +462,7 @@
         window.downloadPDF = downloadPDF;
 
         window.onload = () => {
+            populateYears();
             const savedItem = localStorage.getItem('selectedEpiItem');
             if (savedItem) {
                 document.getElementById('filterItem').value = savedItem;
@@ -473,10 +494,26 @@
     <!-- Filters -->
     <div class="filter-section">
         <div class="filter-group">
-            <label>Date Range (From - To)</label>
+            <label>Select Month & Year</label>
             <div style="display: flex; gap: 5px;">
-                <input type="text" id="filterFromDate" placeholder="From" onfocus="this.type='date'" onblur="if(!this.value)this.type='text'" onchange="filterTable()" style="flex:1;">
-                <input type="text" id="filterToDate" placeholder="To" onfocus="this.type='date'" onblur="if(!this.value)this.type='text'" onchange="filterTable()" style="flex:1;">
+                <select id="filterMonth" onchange="filterTable()" style="flex:1;">
+                    <option value="">All Months</option>
+                    <option value="01">January</option>
+                    <option value="02">February</option>
+                    <option value="03">March</option>
+                    <option value="04">April</option>
+                    <option value="05">May</option>
+                    <option value="06">June</option>
+                    <option value="07">July</option>
+                    <option value="08">August</option>
+                    <option value="09">September</option>
+                    <option value="10">October</option>
+                    <option value="11">November</option>
+                    <option value="12">December</option>
+                </select>
+                <select id="filterYear" onchange="filterTable()" style="flex:1;">
+                    <option value="">All Years</option>
+                </select>
             </div>
         </div>
         <div class="filter-group">
