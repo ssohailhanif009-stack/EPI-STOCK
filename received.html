@@ -683,7 +683,6 @@
                         </div>
                     </div>
                     
-                    <!-- Newly Added Items: ILR & Stablizer -->
                     <div class="item-card" data-name="ILR">
                         <div class="item-title">ILR</div>
                         <div class="item-subfields">
@@ -1058,7 +1057,7 @@
             
             cards.forEach(card => {
                 let itemName = card.getAttribute('data-name');
-                let qtyInput = card.querySelector('.item-qty');
+                let qtyInput = card.querySelector('.item-qty') || card.querySelector('input[type="number"]');
                 let dosesInput = card.querySelector('.item-doses-input') || card.querySelector('.item-doses-select');
                 let companyInput = card.querySelector('.item-company');
                 let expiryInput = card.querySelector('.item-expiry');
@@ -1105,7 +1104,6 @@
             try {
                 await addDoc(collection(db, "epi_transactions"), record);
                 
-                // Fallback / backup support to localStorage for seamless cross-page use
                 let allTransactions = JSON.parse(localStorage.getItem('epi_transactions')) || [];
                 allTransactions.push(record);
                 localStorage.setItem('epi_transactions', JSON.stringify(allTransactions));
