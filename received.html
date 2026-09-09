@@ -700,7 +700,7 @@
                         </div>
                     </div>
 
-                    <!-- Stablizer Updated -->
+                    <!-- Stablizer Card -->
                     <div class="item-card" data-name="Stablizer">
                         <div class="item-title">Stablizer</div>
                         <div class="item-subfields">
@@ -991,7 +991,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-app.js";
-        import { getFirestore, collection, addDoc, getDocs, query, where } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyChMj0SRQlA0MrsDGJHr8BNbxSKXuFAYPo",
@@ -1077,15 +1077,17 @@
                     itemsData[mappedKey] = qty;
                 }
 
-                detailedItems.push({
-                    name: itemName,
-                    qty: qty,
-                    doses: doses,
-                    company: company,
-                    expiry: expiry,
-                    model: model,
-                    type: type
-                });
+                if (qty > 0) {
+                    detailedItems.push({
+                        name: itemName,
+                        qty: qty,
+                        doses: doses,
+                        company: company,
+                        expiry: expiry,
+                        model: model,
+                        type: type
+                    });
+                }
             });
 
             const record = {
@@ -1109,13 +1111,13 @@
                 allTransactions.push(record);
                 localStorage.setItem('epi_transactions', JSON.stringify(allTransactions));
 
-                alert(`Stock Received saved successfully to Firestore & synchronized!\nDate: ${formDate}\nTime (12h): ${time12Format}\nReceiver: ${receiver}\nIssued By: ${issuedBy}`);
+                alert(`Stock Received saved successfully!\nDate: ${formDate}\nTime: ${time12Format}\nReceiver: ${receiver}\nIssued By: ${issuedBy}`);
 
                 document.getElementById('receivedForm').reset();
                 document.getElementById('formTime').value = "";
             } catch (error) {
                 console.error("Error adding document: ", error);
-                alert("Error saving stock to Firestore. Please check your network connection.");
+                alert("Error saving stock to Firestore. Saved locally instead.");
             }
         }
 
@@ -1158,32 +1160,7 @@
             let aggregatedItems = {};
 
             filteredRecords.forEach(record => {
-                // Direct Mapping support for Items
-                if (record.items) {
-                    Object.keys(mappingKeys).forEach(itemName => {
-                        let mappedKey = mappingKeys[itemName];
-                        if (record.items[mappedKey] !== undefined) {
-                            if (selectedReportItem !== "" && itemName !== selectedReportItem) {
-                                return;
-                            }
-                            if (!aggregatedItems[itemName]) {
-                                aggregatedItems[itemName] = {
-                                    name: itemName,
-                                    totalQty: 0,
-                                    doses: "N/A",
-                                    company: "-",
-                                    expiry: "-",
-                                    model: "-",
-                                    type: "-"
-                                };
-                            }
-                            aggregatedItems[itemName].totalQty += parseFloat(record.items[mappedKey]) || 0;
-                        }
-                    });
-                }
-
-                // Detailed Items mapping override (if available)
-                if (record.detailedItems) {
+                if (record.detailedItems && Array.isArray(record.detailedItems)) {
                     record.detailedItems.forEach(item => {
                         if(selectedReportItem !== "" && item.name !== selectedReportItem) {
                             return;
@@ -1192,21 +1169,41 @@
                         if(!aggregatedItems[item.name]) {
                             aggregatedItems[item.name] = {
                                 name: item.name,
-                                totalQty: 0,
-                                doses: item.doses,
-                                company: item.company,
-                                expiry: item.expiry,
+                                totalQty: parseFloat(item.qty) || 0,
+                                doses: item.doses || "N/A",
+                                company: item.company || "-",
+                                expiry: item.expiry || "-",
                                 model: item.model || "-",
                                 type: item.type || "-"
                             };
-                            aggregatedItems[item.name].totalQty = parseFloat(item.qty) || 0;
                         } else {
-                            // Update details if they were empty
-                            if (aggregatedItems[item.name].doses === "N/A") aggregatedItems[item.name].doses = item.doses;
+                            aggregatedItems[item.name].totalQty += (parseFloat(item.qty) || 0);
                             if (aggregatedItems[item.name].company === "-") aggregatedItems[item.name].company = item.company;
                             if (aggregatedItems[item.name].expiry === "-") aggregatedItems[item.name].expiry = item.expiry;
                             if (aggregatedItems[item.name].model === "-") aggregatedItems[item.name].model = item.model || "-";
                             if (aggregatedItems[item.name].type === "-") aggregatedItems[item.name].type = item.type || "-";
+                        }
+                    });
+                } else if (record.items) {
+                    Object.keys(mappingKeys).forEach(itemName => {
+                        let mappedKey = mappingKeys[itemName];
+                        if (record.items[mappedKey] !== undefined && record.items[mappedKey] > 0) {
+                            if (selectedReportItem !== "" && itemName !== selectedReportItem) {
+                                return;
+                            }
+                            if (!aggregatedItems[itemName]) {
+                                aggregatedItems[itemName] = {
+                                    name: itemName,
+                                    totalQty: parseFloat(record.items[mappedKey]) || 0,
+                                    doses: "N/A",
+                                    company: "-",
+                                    expiry: "-",
+                                    model: "-",
+                                    type: "-"
+                                };
+                            } else {
+                                aggregatedItems[itemName].totalQty += (parseFloat(record.items[mappedKey]) || 0);
+                            }
                         }
                     });
                 }
