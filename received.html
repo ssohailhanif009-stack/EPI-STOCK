@@ -687,8 +687,7 @@
                         <div class="item-title">ILR</div>
                         <div class="item-subfields">
                             <div><label>Quantity</label><input type="number" min="0" value="0" class="item-qty" id="rec_l_ilr"></div>
-                            <div><label>Company Name</label><input type="text" placeholder="Optional" class="item-company"></div>
-                            <div><label>Model No.</label><input type="text" placeholder="Optional" class="item-model"></div>
+                            <div><label>Company & Model No.</label><input type="text" placeholder="Optional" class="item-company"></div>
                             <div><label>Type (Optional)</label>
                                 <select class="item-type">
                                     <option value="">-- Select Type --</option>
@@ -703,8 +702,7 @@
                         <div class="item-title">Stablizer</div>
                         <div class="item-subfields">
                             <div><label>Quantity</label><input type="number" min="0" value="0" class="item-qty" id="rec_l_stablizer"></div>
-                            <div><label>Company Name</label><input type="text" placeholder="Optional" class="item-company"></div>
-                            <div><label>Model No.</label><input type="text" placeholder="Optional" class="item-model"></div>
+                            <div><label>Company & Model No.</label><input type="text" placeholder="Optional" class="item-company"></div>
                             <div><label>Type (Optional)</label>
                                 <select class="item-type">
                                     <option value="">-- Select Type --</option>
@@ -990,7 +988,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-app.js";
-        import { getFirestore, collection, addDoc, getDocs, query, where } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyChMj0SRQlA0MrsDGJHr8BNbxSKXuFAYPo",
@@ -1061,14 +1059,12 @@
                 let dosesInput = card.querySelector('.item-doses-input') || card.querySelector('.item-doses-select');
                 let companyInput = card.querySelector('.item-company');
                 let expiryInput = card.querySelector('.item-expiry');
-                let modelInput = card.querySelector('.item-model');
                 let typeInput = card.querySelector('.item-type');
 
                 let qty = qtyInput ? (parseFloat(qtyInput.value) || 0) : 0;
                 let doses = dosesInput ? dosesInput.value : "N/A";
                 let company = companyInput ? (companyInput.value ? companyInput.value : "-") : "-";
                 let expiry = expiryInput ? (expiryInput.value ? expiryInput.value : "-") : "-";
-                let model = modelInput ? (modelInput.value ? modelInput.value : "-") : "-";
                 let type = typeInput ? (typeInput.value ? typeInput.value : "-") : "-";
 
                 let mappedKey = mappingKeys[itemName];
@@ -1082,13 +1078,12 @@
                     doses: doses,
                     company: company,
                     expiry: expiry,
-                    model: model,
                     type: type
                 });
             });
 
             const record = {
-                recordId: "REC_" + Date.now(),
+                id: Date.now(),
                 type: 'RECEIVE',
                 date: formDate,
                 time: time12Format,
@@ -1102,19 +1097,16 @@
             };
 
             try {
+                // Direct Save to Firestore Only
                 await addDoc(collection(db, "epi_transactions"), record);
-                
-                let allTransactions = JSON.parse(localStorage.getItem('epi_transactions')) || [];
-                allTransactions.push(record);
-                localStorage.setItem('epi_transactions', JSON.stringify(allTransactions));
 
-                alert(`Stock Received saved successfully to Firestore & synchronized!\nDate: ${formDate}\nTime (12h): ${time12Format}\nReceiver: ${receiver}\nIssued By: ${issuedBy}`);
+                alert(`Stock Received saved successfully to Firebase!\nDate: ${formDate}\nTime (12h): ${time12Format}\nReceiver: ${receiver}\nIssued By: ${issuedBy}`);
 
                 document.getElementById('receivedForm').reset();
                 document.getElementById('formTime').value = "";
             } catch (error) {
                 console.error("Error adding document: ", error);
-                alert("Error saving stock to Firestore. Please check your network connection.");
+                alert("Error saving stock to Firebase. Please check your network connection.");
             }
         }
 
@@ -1131,6 +1123,7 @@
 
             let filteredRecords = [];
             try {
+                // Fetching directly from Firestore Only
                 const querySnapshot = await getDocs(collection(db, "epi_transactions"));
                 querySnapshot.forEach((doc) => {
                     let record = doc.data();
@@ -1139,11 +1132,9 @@
                     }
                 });
             } catch (e) {
-                console.error("Firestore fetch error, falling back to localStorage", e);
-                let allTransactions = JSON.parse(localStorage.getItem('epi_transactions')) || [];
-                filteredRecords = allTransactions.filter(record => {
-                    return record.type === 'RECEIVE' && record.date >= fromDate && record.date <= toDate;
-                });
+                console.error("Firestore fetch error:", e);
+                alert("Failed to fetch data from Firebase.");
+                return;
             }
 
             if(filteredRecords.length === 0) {
@@ -1163,8 +1154,6 @@
                             return;
                         }
 
-                        let currentQty = parseFloat(item.qty) || 0;
-
                         if(!aggregatedItems[item.name]) {
                             aggregatedItems[item.name] = {
                                 name: item.name,
@@ -1172,11 +1161,10 @@
                                 doses: item.doses,
                                 company: item.company,
                                 expiry: item.expiry,
-                                model: item.model || "-",
                                 type: item.type || "-"
                             };
                         }
-                        aggregatedItems[item.name].totalQty += currentQty;
+                        aggregatedItems[item.name].totalQty += parseFloat(item.qty) || 0;
                     });
                 }
             });
@@ -1274,7 +1262,7 @@
                                 <th>Item Name</th>
                                 <th>Total Quantity Received</th>
                                 <th>No. of Doses</th>
-                                <th>Company / Model</th>
+                                <th>Company & Model No.</th>
                                 <th>Type / Expiry</th>
                             </tr>
                         </thead>
@@ -1291,7 +1279,7 @@
             } else {
                 keys.forEach(key => {
                     let item = aggregatedItems[key];
-                    let compModel = item.company !== '-' ? item.company : (item.model !== '-' ? `Model: ${item.model}` : '-');
+                    let compModel = item.company !== '-' ? item.company : '-';
                     let typeExp = item.expiry !== '-' ? item.expiry : (item.type !== '-' ? `Type: ${item.type}` : '-');
 
                     htmlContent += `
