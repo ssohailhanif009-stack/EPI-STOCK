@@ -239,12 +239,17 @@
 
         async function loadLedger() {
             const selectedItemKey = document.getElementById('filterItem').value;
-            localStorage.setItem('selectedEpiItem', selectedItemKey);
-
-            const targetItemName = itemNamesMap[selectedItemKey] || selectedItemKey;
             const filterCenter = document.getElementById('filterCenter').value;
             const selectedMonth = document.getElementById('filterMonth').value;
             const selectedYear = document.getElementById('filterYear').value;
+
+            // LocalStorage mein values save karna taake refresh ya relaunch par yaad rahein
+            localStorage.setItem('selectedEpiItem', selectedItemKey);
+            localStorage.setItem('selectedEpiMonth', selectedMonth);
+            localStorage.setItem('selectedEpiYear', selectedYear);
+            localStorage.setItem('selectedEpiCenter', filterCenter);
+
+            const targetItemName = itemNamesMap[selectedItemKey] || selectedItemKey;
 
             const tbody = document.getElementById('ledgerTableBody');
             const balanceAlert = document.getElementById('balanceAlert');
@@ -419,11 +424,17 @@
         }
 
         function resetFilters() {
+            // LocalStorage se values clear kar dena taake sab default hojayein
+            localStorage.removeItem('selectedEpiItem');
+            localStorage.removeItem('selectedEpiMonth');
+            localStorage.removeItem('selectedEpiYear');
+            localStorage.removeItem('selectedEpiCenter');
+
             document.getElementById('filterMonth').value = '';
             document.getElementById('filterYear').value = '';
             document.getElementById('filterCenter').value = '';
             document.getElementById('filterItem').value = 'v_bcg';
-            localStorage.setItem('selectedEpiItem', 'v_bcg');
+            
             loadLedger();
         }
 
@@ -463,10 +474,26 @@
 
         window.onload = () => {
             populateYears();
+
+            // Page load hone par LocalStorage se purani saved values ko wapis fields mein set karna
             const savedItem = localStorage.getItem('selectedEpiItem');
+            const savedMonth = localStorage.getItem('selectedEpiMonth');
+            const savedYear = localStorage.getItem('selectedEpiYear');
+            const savedCenter = localStorage.getItem('selectedEpiCenter');
+
             if (savedItem) {
                 document.getElementById('filterItem').value = savedItem;
             }
+            if (savedMonth !== null) {
+                document.getElementById('filterMonth').value = savedMonth;
+            }
+            if (savedYear !== null) {
+                document.getElementById('filterYear').value = savedYear;
+            }
+            if (savedCenter !== null) {
+                document.getElementById('filterCenter').value = savedCenter;
+            }
+
             loadLedger();
         };
     </script>
@@ -610,7 +637,7 @@
                     <option value="r_monitor">Monitoring Chart</option>
                     <option value="r_monthlyrep">EPI Monthly Report</option>
                     <option value="r_aefibook">AEFI Book</option>
-                    <option value="r_zerobook">Zero Weekly Surveillance Book</option>
+                    <option type="r_zerobook" value="r_zerobook">Zero Weekly Surveillance Book</option>
                     <option value="r_vpdbook">VPD Weekly Reporting Book</option>
                 </optgroup>
             </select>
