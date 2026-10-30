@@ -215,17 +215,46 @@
         };
 
         // Helper Function: Format Date to DD-MM-YYYY
-        function formatDateToDMY(rawDate) {
-            let dateStr = rawDate || '';
+        function formatDateToDMY(rawDateTime, rawDate) {
+            let dateStr = rawDateTime || rawDate || '';
             if (!dateStr) return '-';
 
             let match = dateStr.match(/(\d{4})-(\d{2})-(\d{2})/);
             if (match) {
-                return `${match[3]}-${match[2]}-${match[1]}`;
+                let formatted = `${match[3]}-${match[2]}-${match[1]}`;
+                return dateStr.replace(match[0], formatted);
             }
             return dateStr;
         }
 
+        // Helper Function: Parse Date and Time to Exact Timestamp (Handling Seconds & AM/PM properly)
+        function getTimestamp(tx) {
+            if (!tx.date) return 0;
+            
+            let dateStr = tx.date; // Format YYYY-MM-DD
+            let timeStr = tx.time || '00:00:00'; // e.g. "12:37:11 AM"
+            
+            let hours = 0, minutes = 0, seconds = 0;
+            // Regex to match hours, minutes, optional seconds and AM/PM
+            let pmMatch = timeStr.match(/(\d{1,2}):(\d{2})(?::(\d{2}))?\s*(AM|PM)?/i);
+            
+            if (pmMatch) {
+                hours = parseInt(pmMatch[1], 10);
+                minutes = parseInt(pmMatch[2], 10);
+                seconds = pmMatch[3] ? parseInt(pmMatch[3], 10) : 0;
+                let ampm = pmMatch[4] ? pmMatch[4].toUpperCase() : null;
+                
+                if (ampm === 'PM' && hours < 12) hours += 12;
+                if (ampm === 'AM' && hours === 12) hours = 0;
+            }
+
+            let [year, month, day] = dateStr.split('-').map(Number);
+            if (!year || !month || !day) return 0;
+
+            return new Date(year, month - 1, day, hours, minutes, seconds).getTime();
+        }
+
+        // Strict and exact matching to prevent double counting
         function isExactMatch(dbItemName, selectedKey, targetName) {
             if (!dbItemName) return false;
             const cleanDb = String(dbItemName).trim().toLowerCase();
@@ -257,7 +286,6 @@
                 const querySnapshot = await getDocs(collection(db, "epi_transactions"));
                 
                 let transactions = [];
-                let indexCounter = 0;
                 querySnapshot.forEach((doc) => {
                     let txData = doc.data();
                     if (txData.type) {
@@ -265,21 +293,23 @@
                     } else {
                         txData.type = 'RECEIVE';
                     }
-                    // Sequential index tag to preserve original document order for same dates
-                    txData._entryOrder = indexCounter++;
                     transactions.push(txData);
                 });
 
-                // Sorting strictly by Date, and then by Original Entry Sequence
+                // Precise chronological sorting using exact timestamp
                 transactions.sort((a, b) => {
-                    let dateA = a.date || '';
-                    let dateB = b.date || '';
+                    let timeA = getTimestamp(a);
+                    let timeB = getTimestamp(b);
 
-                    if (dateA < dateB) return -1;
-                    if (dateA > dateB) return 1;
+                    if (timeA !== timeB) {
+                        return timeA - timeB;
+                    }
+                    
+                    // Agar exact same second par ho to Receive pehle aur Issue baad me aaye
+                    if (a.type === 'RECEIVE' && (b.type === 'ISSUE' || b.type === 'ISSUED')) return -1;
+                    if ((a.type === 'ISSUE' || a.type === 'ISSUED') && b.type === 'RECEIVE') return 1;
 
-                    // If dates are identical, maintain original order of entry
-                    return a._entryOrder - b._entryOrder;
+                    return 0;
                 });
 
                 tbody.innerHTML = '';
@@ -287,6 +317,7 @@
                 let totalReceived = 0;
                 let totalIssued = 0;
 
+                // Overall stock calculation
                 transactions.forEach(tx => {
                     let matchedQty = 0;
 
@@ -320,6 +351,7 @@
                 let runningBalance = 0;
                 let rowCount = 0;
 
+                // Sequential running balance calculation
                 transactions.forEach(tx => {
                     let matchedQty = 0;
                     let companyBatchInfo = '-';
@@ -345,7 +377,7 @@
                                 }
 
                                 if (expStr) {
-                                    expiryInfo = formatDateToDMY(expStr);
+                                    expiryInfo = formatDateToDMY(expStr, expStr);
                                 }
                             }
                         });
@@ -361,16 +393,19 @@
 
                     const isIssue = (tx.type === 'ISSUE' || tx.type === 'ISSUED');
 
+                    // Running balance update in chronological order
                     if (tx.type === 'RECEIVE') {
                         runningBalance += matchedQty;
                     } else if (isIssue) {
                         runningBalance -= matchedQty;
                     }
 
+                    // Filter Center Check
                     if (filterCenter && isIssue && tx.epiCenter && tx.epiCenter !== filterCenter) return;
 
+                    // Selected Month & Year Filter Check
                     if (tx.date) {
-                        let dateParts = tx.date.split('-');
+                        let dateParts = tx.date.split('-'); // YYYY-MM-DD
                         if (dateParts.length === 3) {
                             let txYear = dateParts[0];
                             let txMonth = dateParts[1];
@@ -381,7 +416,7 @@
                     }
 
                     rowCount++;
-                    const formattedDate = formatDateToDMY(tx.date);
+                    const formattedDate = formatDateToDMY(tx.dateTime, tx.date + ' ' + (tx.time || ''));
 
                     const tr = document.createElement('tr');
                     tr.innerHTML = `
@@ -657,7 +692,7 @@
         <table id="ledgerTable">
             <thead>
                 <tr>
-                    <th>Date</th>
+                    <th>Date & Time</th>
                     <th>Name / Details</th>
                     <th>EPI Center</th>
                     <th>Company & Batch No.</th>
