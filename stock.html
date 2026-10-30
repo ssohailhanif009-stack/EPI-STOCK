@@ -258,6 +258,8 @@
                 let transactions = [];
                 querySnapshot.forEach((doc) => {
                     let txData = doc.data();
+                    // Document ID ko bhi save kar rahe hain taake agar timestamp same ho toh id se exact sequence mil sake
+                    txData.docId = doc.id;
                     if (txData.type) {
                         txData.type = txData.type.toUpperCase().trim();
                     } else {
@@ -266,7 +268,7 @@
                     transactions.push(txData);
                 });
 
-                // Pure Date-based Chronological Sorting (Time Logic Removed)
+                // Improved Chronological Sorting: Date + Timestamp/ID Sorting
                 transactions.sort((a, b) => {
                     let dateA = a.date || '';
                     let dateB = b.date || '';
@@ -275,7 +277,15 @@
                         return dateA.localeCompare(dateB);
                     }
                     
-                    // Agar Date same ho to Receive pehle aur Issue baad mein aaye
+                    // Agar date same ho toh timestamp ya creation time ke mutabiq sort karein (jo pehle bani woh pehle aaye)
+                    let timeA = a.timestamp || a.createdAt || a.docId || '';
+                    let timeB = b.timestamp || b.createdAt || b.docId || '';
+
+                    if (timeA && timeB && timeA !== timeB) {
+                        return String(timeA).localeCompare(String(timeB));
+                    }
+
+                    // Fallback: Agar timestamp na ho toh receive pehle aur issue baad mein
                     if (a.type === 'RECEIVE' && (b.type === 'ISSUE' || b.type === 'ISSUED')) return -1;
                     if ((a.type === 'ISSUE' || a.type === 'ISSUED') && b.type === 'RECEIVE') return 1;
 
@@ -363,7 +373,7 @@
 
                     const isIssue = (tx.type === 'ISSUE' || tx.type === 'ISSUED');
 
-                    // Running balance update in pure date-wise chronological order
+                    // Running balance update in proper sequence
                     if (tx.type === 'RECEIVE') {
                         runningBalance += matchedQty;
                     } else if (isIssue) {
