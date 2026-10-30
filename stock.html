@@ -227,21 +227,22 @@
             return dateStr;
         }
 
-        // Helper Function: Parse Date and Time to Exact Timestamp Number for Precise Sorting
+        // Helper Function: Parse Date and Time to Exact Timestamp (Handling Seconds & AM/PM properly)
         function getTimestamp(tx) {
             if (!tx.date) return 0;
             
             let dateStr = tx.date; // Format YYYY-MM-DD
-            let timeStr = tx.time || '00:00'; // e.g. "12:00", "12:01 AM", "14:30"
+            let timeStr = tx.time || '00:00:00'; // e.g. "12:37:11 AM"
             
-            // Handle AM/PM format if present
-            let hours = 0, minutes = 0;
-            let pmMatch = timeStr.match(/(\d{1,2}):(\d{2})\s*(AM|PM)?/i);
+            let hours = 0, minutes = 0, seconds = 0;
+            // Regex to match hours, minutes, optional seconds and AM/PM
+            let pmMatch = timeStr.match(/(\d{1,2}):(\d{2})(?::(\d{2}))?\s*(AM|PM)?/i);
             
             if (pmMatch) {
                 hours = parseInt(pmMatch[1], 10);
                 minutes = parseInt(pmMatch[2], 10);
-                let ampm = pmMatch[3] ? pmMatch[3].toUpperCase() : null;
+                seconds = pmMatch[3] ? parseInt(pmMatch[3], 10) : 0;
+                let ampm = pmMatch[4] ? pmMatch[4].toUpperCase() : null;
                 
                 if (ampm === 'PM' && hours < 12) hours += 12;
                 if (ampm === 'AM' && hours === 12) hours = 0;
@@ -250,7 +251,7 @@
             let [year, month, day] = dateStr.split('-').map(Number);
             if (!year || !month || !day) return 0;
 
-            return new Date(year, month - 1, day, hours, minutes).getTime();
+            return new Date(year, month - 1, day, hours, minutes, seconds).getTime();
         }
 
         // Strict and exact matching to prevent double counting
@@ -269,7 +270,6 @@
             const selectedMonth = document.getElementById('filterMonth').value;
             const selectedYear = document.getElementById('filterYear').value;
 
-            // LocalStorage me values save karna taake refresh par yaad rahein
             localStorage.setItem('selectedEpiItem', selectedItemKey);
             localStorage.setItem('selectedEpiMonth', selectedMonth);
             localStorage.setItem('selectedEpiYear', selectedYear);
@@ -296,7 +296,7 @@
                     transactions.push(txData);
                 });
 
-                // Precise chronological sorting (Date & Time sequence)
+                // Precise chronological sorting using exact timestamp
                 transactions.sort((a, b) => {
                     let timeA = getTimestamp(a);
                     let timeB = getTimestamp(b);
@@ -305,7 +305,7 @@
                         return timeA - timeB;
                     }
                     
-                    // Same time pe Receive pehle aae aur Issue baad me
+                    // Agar exact same second par ho to Receive pehle aur Issue baad me aaye
                     if (a.type === 'RECEIVE' && (b.type === 'ISSUE' || b.type === 'ISSUED')) return -1;
                     if ((a.type === 'ISSUE' || a.type === 'ISSUED') && b.type === 'RECEIVE') return 1;
 
@@ -351,7 +351,7 @@
                 let runningBalance = 0;
                 let rowCount = 0;
 
-                // Sequential running balance calculate & display
+                // Sequential running balance calculation
                 transactions.forEach(tx => {
                     let matchedQty = 0;
                     let companyBatchInfo = '-';
@@ -393,7 +393,7 @@
 
                     const isIssue = (tx.type === 'ISSUE' || tx.type === 'ISSUED');
 
-                    // Standard Chronological Running Balance Update
+                    // Running balance update in chronological order
                     if (tx.type === 'RECEIVE') {
                         runningBalance += matchedQty;
                     } else if (isIssue) {
@@ -670,7 +670,7 @@
                     <option value="r_monitor">Monitoring Chart</option>
                     <option value="r_monthlyrep">EPI Monthly Report</option>
                     <option value="r_aefibook">AEFI Book</option>
-                    <option value="r_zerobook">Zero Weekly Surveillance Book</option>
+                    <option type="r_zerobook" value="r_zerobook">Zero Weekly Surveillance Book</option>
                     <option value="r_vpdbook">VPD Weekly Reporting Book</option>
                 </optgroup>
             </select>
