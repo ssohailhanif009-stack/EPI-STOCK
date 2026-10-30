@@ -399,7 +399,7 @@
             <form id="receivedForm" onsubmit="handleFormSubmit(event)">
                 
                 <div class="row">
-                    <div class="col" style="flex: 100%;">
+                    <div class="col">
                         <label for="formDate">Select Date (DD/MM/YYYY Calendar)</label>
                         <input type="text" id="formDate" placeholder="DD/MM/YYYY" onfocus="this.type='date'" onblur="if(!this.value)this.type='text'" required>
                     </div>
@@ -596,4 +596,104 @@
                             <div><label>Quantity</label><input type="number" min="0" value="0" class="item-qty" id="rec_v_panadol"></div>
                             <div><label>No. of Doses</label><input type="text" value="30 ml" readonly style="background:#f1f5f9; font-weight:bold;" class="item-doses-input"></div>
                             <div><label>Company Name & Batch No.</label><input type="text" placeholder="Optional" class="item-company"></div>
-                            <div><label>Expiry Date (DD/MM/YYYY)</label><input type="text" placeholder="DD/MM/YYYY" onfocus="this.type='date'" onblur="if(!this
+                            <div><label>Expiry Date (DD/MM/YYYY)</label><input type="text" placeholder="DD/MM/YYYY" onfocus="this.type='date'" onblur="if(!this.value)this.type='text'" class="item-expiry"></div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <div class="section-title">📦 Logistics Received</div>
+                <div class="grid-items" id="logisticsGrid">
+                    <div class="item-card" data-name="0.05 ml Syringes">
+                        <div class="item-title">0.05 ml Syringes</div>
+                        <div class="item-subfields">
+                            <div><label>Quantity</label><input type="number" min="0" value="0" class="item-qty" id="rec_l_005s"></div>
+                            <div><label>Company Name & Batch No.</label><input type="text" placeholder="Optional" class="item-company"></div>
+                            <div><label>Expiry Date (DD/MM/YYYY)</label><input type="text" placeholder="DD/MM/YYYY" onfocus="this.type='date'" onblur="if(!this.value)this.type='text'" class="item-expiry"></div>
+                        </div>
+                    </div>
+                    <div class="item-card" data-name="0.5 ml Syringes">
+                        <div class="item-title">0.5 ml Syringes</div>
+                        <div class="item-subfields">
+                            <div><label>Quantity</label><input type="number" min="0" value="0" class="item-qty" id="rec_l_05s"></div>
+                            <div><label>Company Name & Batch No.</label><input type="text" placeholder="Optional" class="item-company"></div>
+                            <div><label>Expiry Date (DD/MM/YYYY)</label><input type="text" placeholder="DD/MM/YYYY" onfocus="this.type='date'" onblur="if(!this.value)this.type='text'" class="item-expiry"></div>
+                        </div>
+                    </div>
+                    <div class="item-card" data-name="2 ml Syringes">
+                        <div class="item-title">2 ml Syringes</div>
+                        <div class="item-subfields">
+                            <div><label>Quantity</label><input type="number" min="0" value="0" class="item-qty" id="rec_l_2s"></div>
+                            <div><label>Company Name & Batch No me.</label><input type="text" placeholder="Optional" class="item-company"></div>
+                            <div><label>Expiry Date (DD/MM/YYYY)</label><input type="text" placeholder="DD/MM/YYYY" onfocus="this.type='date'" onblur="if(!this.value)this.type='text'" class="item-expiry"></div>
+                        </div>
+                    </div>
+                    <div class="item-card" data-name="5 ml Syringes">
+                        <div class="item-title">5 ml Syringes</div>
+                        <div class="item-subfields">
+                            <div><label>Quantity</label><input type="number" min="0" value="0" class="item-qty" id="rec_l_5s"></div>
+                            <div><label>Company Name & Batch No.</label><input type="text" placeholder="Optional" class="item-company"></div>
+                            <div><label>Expiry Date (DD/MM/YYYY)</label><input type="text" placeholder="DD/MM/YYYY" onfocus="this.type='date'" onblur="if(!this.value)this.type='text'" class="item-expiry"></div>
+                        </div>
+                    </div>
+                    <div class="item-card" data-name="Safety Box">
+                        <div class="item-title">Safety Box</div>
+                        <div class="item-subfields">
+                            <div><label>Quantity</label><input type="number" min="0" value="0" class="item-qty" id="rec_l_safety"></div>
+                            <div><label>Company Name & Batch No.</label><input type="text" placeholder="Optional" class="item-company"></div>
+                            <div><label>Expiry Date (DD/MM/YYYY)</label><input type="text" placeholder="DD/MM/YYYY" onfocus="this.type='date'" onblur="if(!this.value)this.type='text'" class="item-expiry"></div>
+                        </div>
+                    </div>
+                    <div class="item-card" data-name="Droppers">
+                        <div class="item-title">Droppers</div>
+                        <div class="item-subfields">
+                            <div><label>Quantity</label><input type="number" min="0" value="0" class="item-qty" id="rec_l_droppers"></div>
+                            <div><label>Company Name & Batch No.</label><input type="text" placeholder="Optional" class="item-company"></div>
+                            <div><label>Expiry Date (DD/MM/YYYY)</label><input type="text" placeholder="DD/MM/YYYY" onfocus="this.type='date'" onblur="if(!this.value)this.type='text'" class="item-expiry"></div>
+                        </div>
+                    </div>
+                    <div class="item-card" data-name="Vaccine Carrier">
+                        <div class="item-title">Vaccine Carrier</div>
+                        <div class="item-subfields">
+                            <div><label>Quantity</label><input type="number" min="0" value="0" class="item-qty" id="rec_l_vac_carrier"></div>
+                        </div>
+                    </div>
+                    <div class="item-card" data-name="Vaccination Card">
+                        <div class="item-title">Vaccination Card</div>
+                        <div class="item-subfields">
+                            <div><label>Quantity</label><input type="number" min="0" value="0" class="item-qty" id="rec_l_card"></div>
+                        </div>
+                    </div>
+                    <div class="item-card" data-name="QR-Code">
+                        <div class="item-title">QR-Code</div>
+                        <div class="item-subfields">
+                            <div><label>Quantity</label><input type="number" min="0" value="0" class="item-qty" id="rec_l_qrcode"></div>
+                        </div>
+                    </div>
+                    <div class="item-card" data-name="Fridge-Tag 2 Device">
+                        <div class="item-title">Fridge-Tag 2 Device</div>
+                        <div class="item-subfields">
+                            <div><label>Quantity</label><input type="number" min="0" value="0" class="item-qty" id="rec_l_fridgetag"></div>
+                            <div><label>Company Name & Batch No.</label><input type="text" placeholder="Optional" class="item-company"></div>
+                            <div><label>Expiry Date (DD/MM/YYYY)</label><input type="text" placeholder="DD/MM/YYYY" onfocus="this.type='date'" onblur="if(!this.value)this.type='text'" class="item-expiry"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="item-card" data-name="ILR">
+                        <div class="item-title">ILR</div>
+                        <div class="item-subfields">
+                            <div><label>Quantity</label><input type="number" min="0" value="0" class="item-qty" id="rec_l_ilr"></div>
+                            <div><label>Company & Model No.</label><input type="text" placeholder="Optional" class="item-company"></div>
+                            <div><label>Type (Optional)</label>
+                                <select class="item-type">
+                                    <option value="">-- Select Type --</option>
+                                    <option value="Electrical">Electrical</option>
+                                    <option value="Solar">Solar</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <div class="section-title">🚀
