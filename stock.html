@@ -258,8 +258,7 @@
                 let transactions = [];
                 querySnapshot.forEach((doc) => {
                     let txData = doc.data();
-                    // Document ID ko bhi save kar rahe hain taake agar timestamp same ho toh id se exact sequence mil sake
-                    txData.docId = doc.id;
+                    txData.docId = doc.id; // Document ID ko save kiya taake exact entry order mil sake
                     if (txData.type) {
                         txData.type = txData.type.toUpperCase().trim();
                     } else {
@@ -268,7 +267,7 @@
                     transactions.push(txData);
                 });
 
-                // Improved Chronological Sorting: Date + Timestamp/ID Sorting
+                // Fixed Chronological Sorting: Date-wise first, then exact entry sequence (docId / timestamp)
                 transactions.sort((a, b) => {
                     let dateA = a.date || '';
                     let dateB = b.date || '';
@@ -277,17 +276,13 @@
                         return dateA.localeCompare(dateB);
                     }
                     
-                    // Agar date same ho toh timestamp ya creation time ke mutabiq sort karein (jo pehle bani woh pehle aaye)
+                    // Agar date same ho toh jo entry pehle create hui thi woh pehle aaye (Using docId / timestamp ascending order)
                     let timeA = a.timestamp || a.createdAt || a.docId || '';
                     let timeB = b.timestamp || b.createdAt || b.docId || '';
 
                     if (timeA && timeB && timeA !== timeB) {
                         return String(timeA).localeCompare(String(timeB));
                     }
-
-                    // Fallback: Agar timestamp na ho toh receive pehle aur issue baad mein
-                    if (a.type === 'RECEIVE' && (b.type === 'ISSUE' || b.type === 'ISSUED')) return -1;
-                    if ((a.type === 'ISSUE' || a.type === 'ISSUED') && b.type === 'RECEIVE') return 1;
 
                     return 0;
                 });
@@ -373,7 +368,7 @@
 
                     const isIssue = (tx.type === 'ISSUE' || tx.type === 'ISSUED');
 
-                    // Running balance update in proper sequence
+                    // Running balance update in correct chronological order
                     if (tx.type === 'RECEIVE') {
                         runningBalance += matchedQty;
                     } else if (isIssue) {
