@@ -214,28 +214,26 @@
             'r_monthlyrep': 'EPI Monthly Report', 'r_aefibook': 'AEFI Book', 'r_zerobook': 'Zero Weekly Surveillance Book', 'r_vpdbook': 'VPD Weekly Reporting Book'
         };
 
-        // Helper Function: Format Date to DD-MM-YYYY
-        function formatDateToDMY(rawDateTime, rawDate) {
-            let dateStr = rawDateTime || rawDate || '';
+        // Helper Function: Format Date to DD-MM-YYYY (Sirf Date return karega)
+        function formatDateToDMY(rawDate) {
+            let dateStr = rawDate || '';
             if (!dateStr) return '-';
 
             let match = dateStr.match(/(\d{4})-(\d{2})-(\d{2})/);
             if (match) {
-                let formatted = `${match[3]}-${match[2]}-${match[1]}`;
-                return dateStr.replace(match[0], formatted);
+                return `${match[3]}-${match[2]}-${match[1]}`;
             }
             return dateStr;
         }
 
-        // Helper Function: Parse Date and Time to Exact Timestamp (Handling Seconds & AM/PM properly)
+        // Helper Function: Parse Date and Time to Exact Timestamp internally for background sorting
         function getTimestamp(tx) {
             if (!tx.date) return 0;
             
             let dateStr = tx.date; // Format YYYY-MM-DD
-            let timeStr = tx.time || '00:00:00'; // e.g. "12:37:11 AM"
+            let timeStr = tx.time || '00:00:00'; 
             
             let hours = 0, minutes = 0, seconds = 0;
-            // Regex to match hours, minutes, optional seconds and AM/PM
             let pmMatch = timeStr.match(/(\d{1,2}):(\d{2})(?::(\d{2}))?\s*(AM|PM)?/i);
             
             if (pmMatch) {
@@ -254,7 +252,6 @@
             return new Date(year, month - 1, day, hours, minutes, seconds).getTime();
         }
 
-        // Strict and exact matching to prevent double counting
         function isExactMatch(dbItemName, selectedKey, targetName) {
             if (!dbItemName) return false;
             const cleanDb = String(dbItemName).trim().toLowerCase();
@@ -296,7 +293,7 @@
                     transactions.push(txData);
                 });
 
-                // Precise chronological sorting using exact timestamp
+                // Precise chronological sorting in background using timestamp
                 transactions.sort((a, b) => {
                     let timeA = getTimestamp(a);
                     let timeB = getTimestamp(b);
@@ -305,7 +302,6 @@
                         return timeA - timeB;
                     }
                     
-                    // Agar exact same second par ho to Receive pehle aur Issue baad me aaye
                     if (a.type === 'RECEIVE' && (b.type === 'ISSUE' || b.type === 'ISSUED')) return -1;
                     if ((a.type === 'ISSUE' || a.type === 'ISSUED') && b.type === 'RECEIVE') return 1;
 
@@ -317,7 +313,6 @@
                 let totalReceived = 0;
                 let totalIssued = 0;
 
-                // Overall stock calculation
                 transactions.forEach(tx => {
                     let matchedQty = 0;
 
@@ -351,7 +346,6 @@
                 let runningBalance = 0;
                 let rowCount = 0;
 
-                // Sequential running balance calculation
                 transactions.forEach(tx => {
                     let matchedQty = 0;
                     let companyBatchInfo = '-';
@@ -377,7 +371,7 @@
                                 }
 
                                 if (expStr) {
-                                    expiryInfo = formatDateToDMY(expStr, expStr);
+                                    expiryInfo = formatDateToDMY(expStr);
                                 }
                             }
                         });
@@ -393,19 +387,16 @@
 
                     const isIssue = (tx.type === 'ISSUE' || tx.type === 'ISSUED');
 
-                    // Running balance update in chronological order
                     if (tx.type === 'RECEIVE') {
                         runningBalance += matchedQty;
                     } else if (isIssue) {
                         runningBalance -= matchedQty;
                     }
 
-                    // Filter Center Check
                     if (filterCenter && isIssue && tx.epiCenter && tx.epiCenter !== filterCenter) return;
 
-                    // Selected Month & Year Filter Check
                     if (tx.date) {
-                        let dateParts = tx.date.split('-'); // YYYY-MM-DD
+                        let dateParts = tx.date.split('-');
                         if (dateParts.length === 3) {
                             let txYear = dateParts[0];
                             let txMonth = dateParts[1];
@@ -416,7 +407,8 @@
                     }
 
                     rowCount++;
-                    const formattedDate = formatDateToDMY(tx.dateTime, tx.date + ' ' + (tx.time || ''));
+                    // Sirf date show kar rahe hain, time hata diya gaya hai
+                    const formattedDate = formatDateToDMY(tx.date);
 
                     const tr = document.createElement('tr');
                     tr.innerHTML = `
@@ -692,7 +684,7 @@
         <table id="ledgerTable">
             <thead>
                 <tr>
-                    <th>Date & Time</th>
+                    <th>Date</th>
                     <th>Name / Details</th>
                     <th>EPI Center</th>
                     <th>Company & Batch No.</th>
