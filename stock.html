@@ -227,6 +227,32 @@
             return dateStr;
         }
 
+        // Helper Function: Parse Date and Time to Exact Timestamp Number for Precise Sorting
+        function getTimestamp(tx) {
+            if (!tx.date) return 0;
+            
+            let dateStr = tx.date; // Format YYYY-MM-DD
+            let timeStr = tx.time || '00:00'; // e.g. "12:00", "12:01 AM", "14:30"
+            
+            // Handle AM/PM format if present
+            let hours = 0, minutes = 0;
+            let pmMatch = timeStr.match(/(\d{1,2}):(\d{2})\s*(AM|PM)?/i);
+            
+            if (pmMatch) {
+                hours = parseInt(pmMatch[1], 10);
+                minutes = parseInt(pmMatch[2], 10);
+                let ampm = pmMatch[3] ? pmMatch[3].toUpperCase() : null;
+                
+                if (ampm === 'PM' && hours < 12) hours += 12;
+                if (ampm === 'AM' && hours === 12) hours = 0;
+            }
+
+            let [year, month, day] = dateStr.split('-').map(Number);
+            if (!year || !month || !day) return 0;
+
+            return new Date(year, month - 1, day, hours, minutes).getTime();
+        }
+
         // Strict and exact matching to prevent double counting
         function isExactMatch(dbItemName, selectedKey, targetName) {
             if (!dbItemName) return false;
@@ -243,7 +269,7 @@
             const selectedMonth = document.getElementById('filterMonth').value;
             const selectedYear = document.getElementById('filterYear').value;
 
-            // LocalStorage mein values save karna taake refresh ya relaunch par yaad rahein
+            // LocalStorage me values save karna taake refresh par yaad rahein
             localStorage.setItem('selectedEpiItem', selectedItemKey);
             localStorage.setItem('selectedEpiMonth', selectedMonth);
             localStorage.setItem('selectedEpiYear', selectedYear);
@@ -270,11 +296,20 @@
                     transactions.push(txData);
                 });
 
-                // Sort transactions chronologically
+                // Precise chronological sorting (Date & Time sequence)
                 transactions.sort((a, b) => {
-                    let dateA = (a.date || '') + (a.time || '');
-                    let dateB = (b.date || '') + (b.time || '');
-                    return dateA.localeCompare(dateB);
+                    let timeA = getTimestamp(a);
+                    let timeB = getTimestamp(b);
+
+                    if (timeA !== timeB) {
+                        return timeA - timeB;
+                    }
+                    
+                    // Same time pe Receive pehle aae aur Issue baad me
+                    if (a.type === 'RECEIVE' && (b.type === 'ISSUE' || b.type === 'ISSUED')) return -1;
+                    if ((a.type === 'ISSUE' || a.type === 'ISSUED') && b.type === 'RECEIVE') return 1;
+
+                    return 0;
                 });
 
                 tbody.innerHTML = '';
@@ -282,7 +317,7 @@
                 let totalReceived = 0;
                 let totalIssued = 0;
 
-                // First pass: Overall stock calculate karna
+                // Overall stock calculation
                 transactions.forEach(tx => {
                     let matchedQty = 0;
 
@@ -316,7 +351,7 @@
                 let runningBalance = 0;
                 let rowCount = 0;
 
-                // Chronologically process transactions and calculate running balance correctly
+                // Sequential running balance calculate & display
                 transactions.forEach(tx => {
                     let matchedQty = 0;
                     let companyBatchInfo = '-';
@@ -358,19 +393,19 @@
 
                     const isIssue = (tx.type === 'ISSUE' || tx.type === 'ISSUED');
 
-                    // Filter Center Check
-                    if (filterCenter && isIssue && tx.epiCenter && tx.epiCenter !== filterCenter) return;
-
-                    // Pehle Balance Update Karein Shuruat Se Le Kr Tab Tak Ka
+                    // Standard Chronological Running Balance Update
                     if (tx.type === 'RECEIVE') {
                         runningBalance += matchedQty;
                     } else if (isIssue) {
                         runningBalance -= matchedQty;
                     }
 
-                    // Selected Month aur Year Filter Check
+                    // Filter Center Check
+                    if (filterCenter && isIssue && tx.epiCenter && tx.epiCenter !== filterCenter) return;
+
+                    // Selected Month & Year Filter Check
                     if (tx.date) {
-                        let dateParts = tx.date.split('-'); // Format: YYYY-MM-DD
+                        let dateParts = tx.date.split('-'); // YYYY-MM-DD
                         if (dateParts.length === 3) {
                             let txYear = dateParts[0];
                             let txMonth = dateParts[1];
@@ -424,7 +459,6 @@
         }
 
         function resetFilters() {
-            // LocalStorage se values clear kar dena taake sab default hojayein
             localStorage.removeItem('selectedEpiItem');
             localStorage.removeItem('selectedEpiMonth');
             localStorage.removeItem('selectedEpiYear');
@@ -475,7 +509,6 @@
         window.onload = () => {
             populateYears();
 
-            // Page load hone par LocalStorage se purani saved values ko wapis fields mein set karna
             const savedItem = localStorage.getItem('selectedEpiItem');
             const savedMonth = localStorage.getItem('selectedEpiMonth');
             const savedYear = localStorage.getItem('selectedEpiYear');
@@ -637,7 +670,7 @@
                     <option value="r_monitor">Monitoring Chart</option>
                     <option value="r_monthlyrep">EPI Monthly Report</option>
                     <option value="r_aefibook">AEFI Book</option>
-                    <option type="r_zerobook" value="r_zerobook">Zero Weekly Surveillance Book</option>
+                    <option value="r_zerobook">Zero Weekly Surveillance Book</option>
                     <option value="r_vpdbook">VPD Weekly Reporting Book</option>
                 </optgroup>
             </select>
