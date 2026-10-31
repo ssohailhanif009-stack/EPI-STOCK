@@ -399,9 +399,13 @@
             <form id="receivedForm" onsubmit="handleFormSubmit(event)">
                 
                 <div class="row">
-                    <div class="col" style="flex: 1; min-width: 100%;">
+                    <div class="col">
                         <label for="formDate">Select Date (DD/MM/YYYY Calendar)</label>
                         <input type="text" id="formDate" placeholder="DD/MM/YYYY" onfocus="this.type='date'" onblur="if(!this.value)this.type='text'" required>
+                    </div>
+                    <div class="col">
+                        <label for="formTime">Time (12-Hour Format - Auto on Submit)</label>
+                        <input type="text" id="formTime" readonly style="background-color: #f8fafc; font-weight: bold; color: #0f4c5c;" placeholder="Auto-generated on submit">
                     </div>
                 </div>
 
@@ -1004,6 +1008,19 @@
         window.handleFormSubmit = async function(event) {
             event.preventDefault();
 
+            let now = new Date();
+            let hours = now.getHours();
+            let minutes = String(now.getMinutes()).padStart(2, '0');
+            let seconds = String(now.getSeconds()).padStart(2, '0');
+            let ampm = hours >= 12 ? 'PM' : 'AM';
+            
+            hours = hours % 12;
+            hours = hours ? hours : 12; 
+            let strHours = String(hours).padStart(2, '0');
+
+            let time12Format = `${strHours}:${minutes}:${seconds} ${ampm}`;
+            document.getElementById('formTime').value = time12Format;
+
             let formDate = document.getElementById('formDate').value;
             let source = document.getElementById('sourceOfStock').value;
             let receiver = document.getElementById('receiverName').value;
@@ -1046,6 +1063,8 @@
                 id: Date.now(),
                 type: 'RECEIVE',
                 date: formDate,
+                time: time12Format,
+                dateTime: `${formDate} ${time12Format}`,
                 unionCouncil: 'Naushahro Feroze',
                 epiCenter: source,
                 vaccinatorName: receiver,
@@ -1055,11 +1074,13 @@
             };
 
             try {
+                // Direct Save to Firestore Only
                 await addDoc(collection(db, "epi_transactions"), record);
 
-                alert(`Stock Received saved successfully to Firebase!\nDate: ${formDate}\nReceiver: ${receiver}\nIssued By: ${issuedBy}`);
+                alert(`Stock Received saved successfully to Firebase!\nDate: ${formDate}\nTime (12h): ${time12Format}\nReceiver: ${receiver}\nIssued By: ${issuedBy}`);
 
                 document.getElementById('receivedForm').reset();
+                document.getElementById('formTime').value = "";
             } catch (error) {
                 console.error("Error adding document: ", error);
                 alert("Error saving stock to Firebase. Please check your network connection.");
@@ -1079,6 +1100,7 @@
 
             let filteredRecords = [];
             try {
+                // Fetching directly from Firestore Only
                 const querySnapshot = await getDocs(collection(db, "epi_transactions"));
                 querySnapshot.forEach((doc) => {
                     let record = doc.data();
