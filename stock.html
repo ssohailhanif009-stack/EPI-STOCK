@@ -235,7 +235,6 @@
             let timeStr = tx.time || '00:00:00'; // e.g. "12:37:11 AM"
             
             let hours = 0, minutes = 0, seconds = 0;
-            // Regex to match hours, minutes, optional seconds and AM/PM
             let pmMatch = timeStr.match(/(\d{1,2}):(\d{2})(?::(\d{2}))?\s*(AM|PM)?/i);
             
             if (pmMatch) {
@@ -296,7 +295,7 @@
                     transactions.push(txData);
                 });
 
-                // Precise chronological sorting using exact timestamp
+                // Precise chronological sorting using exact timestamp (Oldest to Newest)
                 transactions.sort((a, b) => {
                     let timeA = getTimestamp(a);
                     let timeB = getTimestamp(b);
@@ -317,7 +316,7 @@
                 let totalReceived = 0;
                 let totalIssued = 0;
 
-                // Overall stock calculation
+                // Overall stock calculation across all records
                 transactions.forEach(tx => {
                     let matchedQty = 0;
 
@@ -351,7 +350,7 @@
                 let runningBalance = 0;
                 let rowCount = 0;
 
-                // Sequential running balance calculation
+                // Sequential running balance calculation in strict chronological order
                 transactions.forEach(tx => {
                     let matchedQty = 0;
                     let companyBatchInfo = '-';
@@ -393,7 +392,7 @@
 
                     const isIssue = (tx.type === 'ISSUE' || tx.type === 'ISSUED');
 
-                    // Running balance update in chronological order
+                    // Running balance update step-by-step
                     if (tx.type === 'RECEIVE') {
                         runningBalance += matchedQty;
                     } else if (isIssue) {
