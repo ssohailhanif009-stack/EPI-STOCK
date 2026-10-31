@@ -624,7 +624,7 @@
                         <div class="item-title">2 ml Syringes</div>
                         <div class="item-subfields">
                             <div><label>Quantity</label><input type="number" min="0" value="0" class="item-qty" id="rec_l_2s"></div>
-                            <div><label>Company Name & Batch No me.</label><input type="text" placeholder="Optional" class="item-company"></div>
+                            <div><label>Company Name & Batch No.</label><input type="text" placeholder="Optional" class="item-company"></div>
                             <div><label>Expiry Date (DD/MM/YYYY)</label><input type="text" placeholder="DD/MM/YYYY" onfocus="this.type='date'" onblur="if(!this.value)this.type='text'" class="item-expiry"></div>
                         </div>
                     </div>
@@ -696,4 +696,76 @@
 
                 </div>
 
-                <div class="section-title">🚀
+                <div class="section-title">🚀 CAMPAIGN VACCINE RECEIVED</div>
+                <div class="grid-items" id="campaignGrid">
+                    <div class="item-card" data-name="NID/ Oral Polio Vaccine">
+                        <div class="item-title">NID/ Oral Polio Vaccine</div>
+                        <div class="item-subfields">
+                            <div><label>Quantity</label><input type="number" min="0" value="0" class="item-qty" id="rec_camp_nid"></div>
+                            <div><label>No. of Doses</label><input type="text" value="20" readonly style="background:#f1f5f9; font-weight:bold;" class="item-doses-input"></div>
+                            <div><label>Company Name & Batch No.</label><input type="text" placeholder="Optional" class="item-company"></div>
+                            <div><label>Expiry Date (DD/MM/YYYY)</label><input type="text" placeholder="DD/MM/YYYY" onfocus="this.type='date'" onblur="if(!this.value)this.type='text'" class="item-expiry"></div>
+                        </div>
+                    </div>
+                    <div class="item-card" data-name="HPV (Campaign)">
+                        <div class="item-title">HPV (Campaign)</div>
+                        <div class="item-subfields">
+                            <div><label>Quantity</label><input type="number" min="0" value="0" class="item-qty" id="rec_camp_hpv"></div>
+                            <div><label>No. of Doses</label><input type="text" value="01" readonly style="background:#f1f5f9; font-weight:bold;" class="item-doses-input"></div>
+                            <div><label>Company Name & Batch No.</label><input type="text" placeholder="Optional" class="item-company"></div>
+                            <div><label>Expiry Date (DD/MM/YYYY)</label><input type="text" placeholder="DD/MM/YYYY" onfocus="this.type='date'" onblur="if(!this.value)this.type='text'" class="item-expiry"></div>
+                        </div>
+                    </div>
+                    <div class="item-card" data-name="Measles-Rubella (Campaign)">
+                        <div class="item-title">Measles-Rubella (Campaign)</div>
+                        <div class="item-subfields">
+                            <div><label>Quantity</label><input type="number" min="0" value="0" class="item-qty" id="rec_camp_mr"></div>
+                            <div><label>No. of Doses</label>
+                                <select class="item-doses item-doses-select">
+                                    <option value="05">05</option>
+                                    <option value="10">10</option>
+                                </select>
+                            </div>
+                            <div><label>Company Name & Batch No.</label><input type="text" placeholder="Optional" class="item-company"></div>
+                            <div><label>Expiry Date (DD/MM/YYYY)</label><input type="text" placeholder="DD/MM/YYYY" onfocus="this.type='date'" onblur="if(!this.value)this.type='text'" class="item-expiry"></div>
+                        </div>
+                    </div>
+                    <div class="item-card" data-name="MR-Diluent (Campaign)">
+                        <div class="item-title">MR-Diluent (Campaign)</div>
+                        <div class="item-subfields">
+                            <div><label>Quantity</label><input type="number" min="0" value="0" class="item-qty" id="rec_camp_mrdil"></div>
+                            <div><label>No. of Doses</label>
+                                <select class="item-doses item-doses-select">
+                                    <option value="05">05</option>
+                                    <option value="10">10</option>
+                                </select>
+                            </div>
+                            <div><label>Company Name & Batch No.</label><input type="text" placeholder="Optional" class="item-company"></div>
+                            <div><label>Expiry Date (DD/MM/YYYY)</label><input type="text" placeholder="DD/MM/YYYY" onfocus="this.type='date'" onblur="if(!this.value)this.type='text'" class="item-expiry"></div>
+                        </div>
+                    </div>
+                    <div class="item-card" data-name="TCV (Campaign)">
+                        <div class="item-title">TCV (Campaign)</div>
+                        <div class="item-subfields">
+                            <div><label>Quantity</label><input type="number" min="0" value="0" class="item-qty" id="rec_camp_tcv"></div>
+                            <div><label>No. of Doses</label><input type="text" value="05" readonly style="background:#f1f5f9; font-weight:bold;" class="item-doses-input"></div>
+                            <div><label>Company Name & Batch No.</label><input type="text" placeholder="Optional" class="item-company"></div>
+                            <div><label>Expiry Date (DD/MM/YYYY)</label><input type="text" placeholder="DD/MM/YYYY" onfocus="this.type='date'" onblur="if(!this.value)this.type='text'" class="item-expiry"></div>
+                        </div>
+                    </div>
+                    <div class="item-card" data-name="Finger Markers">
+                        <div class="item-title">Finger Markers</div>
+                        <div class="item-subfields">
+                            <div><label>Quantity</label><input type="number" min="0" value="0" class="item-qty" id="rec_camp_markers"></div>
+                        </div>
+                    </div>
+                    <div class="item-card" data-name="Scissor">
+                        <div class="item-title">Scissor</div>
+                        <div class="item-subfields">
+                            <div><label>Quantity</label><input type="number" min="0" value="0" class="item-qty" id="rec_camp_scissor"></div>
+                        </div>
+                    </div>
+                    <div class="item-card" data-name="Mobile Tally Sheet">
+                        <div class="item-title">Mobile Tally Sheet</div>
+                        <div class="item-subfields">
+                            <div><label>Quantity</label><input type="
