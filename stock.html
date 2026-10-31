@@ -256,9 +256,12 @@
                 const querySnapshot = await getDocs(collection(db, "epi_transactions"));
                 
                 let transactions = [];
+                let originalIndex = 0;
                 querySnapshot.forEach((doc) => {
                     let txData = doc.data();
-                    txData.docId = doc.id; // Document ID ko save kiya taake exact entry order mil sake
+                    txData.docId = doc.id;
+                    txData._originalIndex = originalIndex++; // Entry order preserve karne ke liye
+
                     if (txData.type) {
                         txData.type = txData.type.toUpperCase().trim();
                     } else {
@@ -267,7 +270,7 @@
                     transactions.push(txData);
                 });
 
-                // Fixed Chronological Sorting: Date-wise first, then exact entry sequence (docId / timestamp)
+                // Correct Sorting: Date wise first, then entry time sequence
                 transactions.sort((a, b) => {
                     let dateA = a.date || '';
                     let dateB = b.date || '';
@@ -276,15 +279,16 @@
                         return dateA.localeCompare(dateB);
                     }
                     
-                    // Agar date same ho toh jo entry pehle create hui thi woh pehle aaye (Using docId / timestamp ascending order)
-                    let timeA = a.timestamp || a.createdAt || a.docId || '';
-                    let timeB = b.timestamp || b.createdAt || b.docId || '';
+                    // Agar date same ho to exact time / timestamp se sort karein
+                    let timeA = a.timestamp?.seconds || a.createdAt?.seconds || (typeof a.timestamp === 'number' ? a.timestamp : 0);
+                    let timeB = b.timestamp?.seconds || b.createdAt?.seconds || (typeof b.timestamp === 'number' ? b.timestamp : 0);
 
                     if (timeA && timeB && timeA !== timeB) {
-                        return String(timeA).localeCompare(String(timeB));
+                        return timeA - timeB;
                     }
 
-                    return 0;
+                    // Agar timestamp na mile to entry insertion index ke hisab se order karein
+                    return a._originalIndex - b._originalIndex;
                 });
 
                 tbody.innerHTML = '';
