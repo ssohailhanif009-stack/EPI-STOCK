@@ -462,6 +462,9 @@
         'r_monthlyrep': 'EPI Monthly Report', 'r_aefibook': 'AEFI Book', 'r_zerobook': 'Zero Weekly Surveillance Book', 'r_vpdbook': 'VPD Weekly Reporting Book'
     };
 
+    // Global stock balances holder to validate against
+    let currentStockBalances = {};
+
     // Strict and exact matching function to eliminate double counting
     function isExactMatch(dbKey, formKey, targetName) {
         if (!dbKey) return false;
@@ -536,6 +539,9 @@
                 balances[itemKey] = runningBal;
             });
 
+            // Store in global variable for validation checks
+            currentStockBalances = balances;
+
             // Update UI with actual stock balances and badge indicators
             Object.keys(itemDetails).forEach(key => {
                 const inputField = document.getElementById(key);
@@ -605,6 +611,32 @@
 
     async function saveIssueRecord(event) {
         event.preventDefault();
+
+        // Validate stock quantity before saving
+        let validationFailed = false;
+        let errorMessage = "";
+
+        Object.keys(itemDetails).forEach(key => {
+            const inputField = document.getElementById(key);
+            if (!inputField || inputField.disabled) return;
+
+            const enteredQty = Number(inputField.value) || 0;
+            const availableStock = currentStockBalances[key] !== undefined ? currentStockBalances[key] : 0;
+
+            if (enteredQty > availableStock) {
+                validationFailed = true;
+                errorMessage = `Error: Entered quantity for ${itemDetails[key]} exceeds available stock (${availableStock}).`;
+                inputField.focus();
+                inputField.style.borderColor = "var(--danger-color)";
+            } else {
+                inputField.style.borderColor = "#cbd5e1";
+            }
+        });
+
+        if (validationFailed) {
+            alert(errorMessage);
+            return;
+        }
 
         let now = new Date();
         let hours = now.getHours();
