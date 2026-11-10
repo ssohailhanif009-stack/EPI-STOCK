@@ -716,14 +716,12 @@
             }
 
             let issuedSummary = [];
-            Object.keys(record.items).forEach(key => {
-                if (record.items[key] > 0 && itemDetails[key]) {
+            // FIX: itemDetails ki proper sequence ke mutabiq items ko arrange kiya hai taaki random na aayein
+            Object.keys(itemDetails).forEach(key => {
+                if (record.items && record.items[key] > 0) {
                     issuedSummary.push({ name: itemDetails[key], qty: record.items[key] });
                 }
             });
-
-            // Sorting items alphabetically (series-wise) before generating PDF
-            issuedSummary.sort((a, b) => a.name.localeCompare(b.name));
 
             generatePDF(record, issuedSummary);
         } catch (error) {
