@@ -722,6 +722,9 @@
                 }
             });
 
+            // Sorting items alphabetically (series-wise) before generating PDF
+            issuedSummary.sort((a, b) => a.name.localeCompare(b.name));
+
             generatePDF(record, issuedSummary);
         } catch (error) {
             console.error("Error fetching voucher for download: ", error);
